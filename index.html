@@ -1,0 +1,90 @@
+<html>
+<head>
+<title>Pickles</title>
+<link rel="stylesheet" type="text/css" href="/static/css/style.css" media="all" />
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"></script>
+<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Crimson+Text">
+<script>
+var pushed = false;
+function load_file(file) {
+    if (history.pushState) {
+        history.pushState("", "", location.protocol + "//" + location.host + file);
+    }
+    do_load_file(file);
+    pushed = true;
+    return false;
+}
+function do_load_file(file) {
+    $.ajax({
+        url: '/?file=' + file,
+        success: function(html){
+            $("#content").html(html);
+        }
+    });
+}
+window.addEventListener("popstate", function (event) {
+    if (pushed) {
+        do_load_file(location.pathname);
+    }
+});
+$(document).ready(function() {
+    if (history.pushState) {
+        history.pushState("", "", location.protocol + "//" + location.host + file);
+    }
+    $("#sidebar dt").hover(function(){
+        $(this).css("cursor","pointer"); 
+    },function(){
+        $(this).css("cursor","default"); 
+    });
+    $("#sidebar dt").click(function(){
+        var ele = $(this).next();
+        if (ele.length > 0 && ele.get(0).tagName.toLowerCase() == "dl") {
+            ele.slideToggle("fast");
+        }
+    });
+    /*
+    $("#sidebar dd").each(function(){
+        $(this).next().hide();
+    });
+    */
+});
+</script>
+<!--[if IE]>
+<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+</head>
+<body>
+<h1 id="siteTitle">The Document of Aska</h1>
+
+
+<div id="wrapper" class="clearfix">
+<nav id="sidebar">
+
+[% SET dep = 0 %]
+[% SET cur_dep = 0 %]
+[% FOREACH file IN files %]
+[% SET cur_dep = file.depth %]
+[% IF dep < cur_dep %]
+[% '<dl>'.repeat(cur_dep - dep) | mark_raw %][% SET dep = cur_dep %]
+[% ELSIF dep > cur_dep %]
+[% '</dl>'.repeat(dep - cur_dep) | mark_raw %][% SET dep = cur_dep %]
+[% END %]
+[% IF file.is_dir %]
+<dt>[% file.basename %]</dt>
+[% ELSE %]
+[% SET path = file == '/TOP.txt' ? '/' : file.stringify.replace('.txt$', '') %]
+<dd><a onClick="return load_file($(this).data().file)" data-file="[% path %]" href="[% path %]">[% file.basename.replace('.txt$', '') %]</a></dd>
+[% END %]
+[% END %]
+[% '</dl>'.repeat(dep) | mark_raw %]
+</nav>
+<article>
+<div id="content">[% content | mark_raw %]</div>
+
+</article>
+
+</div>
+<footer>© 2011 <a href="http://www.7kai.org/">七階</a></footer>
+
+</body>
+</html>

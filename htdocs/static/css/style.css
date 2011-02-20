@@ -1,0 +1,257 @@
+@charset "utf-8";
+
+/* reset */
+
+html, body, div, span, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+abbr, address, cite, code,
+del, dfn, em, img, ins, kbd, q, samp,
+small, strong, sub, sup, var,
+b, i,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, dialog, figure, footer, header, 
+hgroup, menu, nav, section, menu,
+time, mark, audio, video {
+	margin:0;
+	padding:0;
+	border:0;
+	outline:0;
+	font-size:100%;
+	vertical-align:baseline;
+	background:transparent;
+}
+body {
+	line-height:1;
+}
+
+article, aside, dialog, figure, footer, header, 
+hgroup, nav, section { 
+	display:block;
+}
+
+/*
+nav ul {
+	list-style:none;
+}
+
+li{
+    list-style-type:none;
+}
+*/
+
+blockquote, q {
+	quotes:none;
+}
+
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content:'';
+	content:none;
+}
+
+a {
+	margin:0;
+	padding:0;
+	border:0;
+	font-size:100%;
+	vertical-align:baseline;
+	background:transparent;
+}
+
+ins {
+	background-color:#ff9;
+	color:#000;
+	text-decoration:none;
+}
+
+mark {
+	background-color:#ff9;
+	color:#000;	
+	font-style:italic;
+	font-weight:bold;
+}
+
+del {
+	text-decoration: line-through;
+}
+
+abbr[title], dfn[title] {
+	border-bottom:1px dotted #000;
+	cursor:help;
+}
+
+table {
+	border-collapse:collapse;
+	border-spacing:0;
+}
+
+hr {
+    display:block;
+    height:1px;
+    border:0;	
+    border-top:1px solid #cccccc;
+    margin:1em 0;
+    padding:0;
+}
+
+input, select {
+	vertical-align:middle;
+}
+
+.clearfix:after {
+  content: ".";  
+  display: block;
+  clear: both;
+  height: 0;
+  visibility: hidden;
+}
+
+.clearfix {
+  min-height: 1px;
+}
+
+* html .clearfix {
+  height: 1px;
+  /*¥*//*/
+  height: auto;
+  overflow: hidden;
+  /**/
+}
+
+/* ************ */
+
+body, th, td, h1, h2, h3, h4, h5, h6, pre, input, textarea, option, div, p, dt, dd, li, address {
+	font-family:"ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+	font-size: 12px;
+	line-height: 150%;
+	font-weight: normal;
+	font-style: normal;
+	color:#636363;
+}
+
+a {
+	color:#68a9cf;
+    text-decoration:none;
+	
+}
+a:hover {
+	color:#68a9cf;
+	text-decoration:underline;
+}
+
+
+html,body { height:100%; }
+
+body {
+    padding-top:20px;
+}
+
+#wrapper{
+    width:1000px;
+    margin:0 auto;
+    height:auto;
+}
+
+nav{
+    padding:20px 0;
+    width:250px;
+    float:left;
+    
+    height:auto;
+}
+
+nav dt{
+    font-size:14px;
+    font-weight:bold;
+}
+
+nav dl dl{
+    padding-left:10px;
+}
+
+nav dd{
+    font-size:12px;
+    font-weight:normal;
+    /* padding-left:10px; */
+    padding-right:10px;
+}
+
+article{
+    padding:20px 0;
+    width:725px;
+    float:right;
+    border-left: 1px dotted #000;
+}
+
+#content{
+    margin-left:20px;
+}
+
+footer{
+    text-align:center;
+    padding:20px 0;
+    border-top: 1px dotted #000;
+}
+
+h1#siteTitle {
+    padding-bottom:20px;
+    border-bottom: 1px dotted #000;
+    font-size: 30px;
+    font-weight: normal;
+    font-family:Crimson Text;
+    text-align:center;
+    margin-bottom:0px;
+    
+}
+    
+#content h1 {
+    font-size:24px;
+    font-weight:bold;
+    margin-bottom:20px;
+}
+
+h2 {
+    font-size:18px;
+    font-weight:bold;
+    margin-bottom:20px;
+    padding-bottom:5px;
+    border-bottom: 1px dotted #000;
+}
+h3 {
+    font-size:14px;
+    font-weight:bold;
+    margin-bottom:20px;
+}
+pre {
+    margin: 10px 10px 20px 10px;
+    padding: 10px;
+    border: 1px solid  #999999;
+    background-color: #eeeeee;
+}
+
+em {
+    font-style:italic;
+
+}
+
+strong {
+
+}
+
+blockquote {
+    margin: 10px 10px 20px 10px;
+    padding: 10px;
+    border-left: 1px solid  #999999;
+    background-color:;
+}
+
+p{
+    margin-bottom:20px;
+}
+
+ul,ol{
+    margin-left:20px;
+    margin-bottom:20px;
+}
