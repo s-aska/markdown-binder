@@ -1,9 +1,6 @@
 
 use strict;
-use Data::Section::Simple;
-use Devel::Size qw(total_size);
 use Encode;
-use JSON;
 use Path::Class;
 use Plack::Builder;
 use Plack::Request;
@@ -69,7 +66,8 @@ my $get_files = sub {
 my $get_html = sub {
     my $file = shift;
     my $base_path = quotemeta $doc_dir;
-    die 'security error.' unless $file=~/^$base_path/;
+    return 'security error.' unless $file=~/^$base_path/;
+    return '404 not found.' unless -f $file;
     if ($file->stat->mtime > $cache->{docs}->{$file->stringify}->{mtime}) {
         my $text = $file->slurp;
         my $html = Text::Markdown->new->markdown($text);
@@ -92,7 +90,7 @@ my $app = sub {
     
     if (my $file = $req->param('file')) {
         $file.= $top if $file eq '/';
-        my $path = file($doc_dir, $file . $suffix)->absolute;
+        my $path = file($doc_dir, $file . $suffix)->resolve;
         my $html = $get_html->($path);
         $res->content_type('text/html; charset=UTF-8');
         $res->body($html);
@@ -101,7 +99,7 @@ my $app = sub {
     else {
         my $file = substr $req->path, 1;
            $file ||= $top;
-        my $path = file($doc_dir, $file . $suffix)->absolute;
+        my $path = file($doc_dir, $file . $suffix)->resolve;
         my $html = $get_html->($path);
         my @dirs;
         my @files = $get_files->();

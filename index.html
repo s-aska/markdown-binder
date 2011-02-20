@@ -1,9 +1,9 @@
 <html>
 <head>
-<title>Pickles</title>
+<title>The Document of Aska</title>
 <link rel="stylesheet" type="text/css" href="/static/css/style.css" media="all" />
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"></script>
 <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Crimson+Text">
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"></script>
 <script>
 var pushed = false;
 function load_file(file) {
@@ -29,7 +29,7 @@ window.addEventListener("popstate", function (event) {
 });
 $(document).ready(function() {
     if (history.pushState) {
-        history.pushState("", "", location.protocol + "//" + location.host + file);
+        history.pushState("", "", location.protocol + "//" + location.host + location.pathname);
     }
     $("#sidebar dt").hover(function(){
         $(this).css("cursor","pointer"); 
@@ -55,11 +55,8 @@ $(document).ready(function() {
 </head>
 <body>
 <h1 id="siteTitle">The Document of Aska</h1>
-
-
 <div id="wrapper" class="clearfix">
 <nav id="sidebar">
-
 [% SET dep = 0 %]
 [% SET cur_dep = 0 %]
 [% FOREACH file IN files %]
@@ -80,11 +77,8 @@ $(document).ready(function() {
 </nav>
 <article>
 <div id="content">[% content | mark_raw %]</div>
-
 </article>
-
 </div>
 <footer>© 2011 <a href="http://www.7kai.org/">七階</a></footer>
-
 </body>
 </html>
