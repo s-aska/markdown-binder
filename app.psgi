@@ -7,8 +7,8 @@ use Plack::Request;
 use Text::Markdown;
 use Text::Xslate;
 
-my $doc_dir = dir($ENV{'MKREADER_DOC'} || './doc/')->absolute;
-my $top     = $ENV{'MKREADER_TOP'} || 'TOP';
+my $doc_dir = dir($ENV{'MARKDOWN_BINDER_DOC'} || './doc/')->absolute;
+my $top     = $ENV{'MARKDOWN_BINDER_TOP'} || 'TOP';
 my $suffix  = '.txt';
 
 no strict 'refs';
