@@ -232,12 +232,11 @@ pre {
 }
 
 em {
-    font-style:italic;
-
+    font-weight:bold;
 }
 
 strong {
-
+    color: #BF0000;
 }
 
 blockquote {
@@ -254,4 +253,13 @@ p{
 ul,ol{
     margin-left:20px;
     margin-bottom:20px;
+}
+
+code {
+    padding: 2px;
+    border-bottom: 1px dotted #999999;
+}
+pre code {
+    padding: 0;
+    border-bottom: none;
 }
