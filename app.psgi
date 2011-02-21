@@ -34,49 +34,35 @@ no strict 'refs';
   } @out;
 };
 
-my $cache = {
-    doc_files => [],
-    doc_mtime => undef,
-    docs      => {}
-};
+my $cache = {};
 
-my $get_files = sub {
-    if ($doc_dir->stat->mtime > $cache->{doc_mtime}) {
-        my @files;
-        $doc_dir->recurse(
-            preorder => 1,
-            depthfirst => 1,
-            callback => sub {
-                my $file = shift;
-                my $path = decode('utf8', $file);
-                $path=~s|^$doc_dir||;
-                return unless length $path;
-                $path = -f $file ? file($path) : dir($path);
-                push @files, $path;
-            }
-        );
-        $cache->{doc_files} = \@files;
-        $cache->{doc_mtime} = $doc_dir->stat->mtime;
-        return @files;
-    } else {
-        return @{ $cache->{doc_files} };
+my @files;
+$doc_dir->recurse(
+    preorder => 1,
+    depthfirst => 1,
+    callback => sub {
+        my $file = shift;
+        my $path = decode('utf8', $file);
+        $path=~s|^$doc_dir||;
+        return unless length $path;
+        if (-f $file) {
+            $path = file($path);
+            my $text = $file->slurp;
+            my $html = Text::Markdown->new->markdown($text);
+            $cache->{encode('utf8', $path)} = $html;
+            warn 'cached ', $path;
+        } else {
+            $path = dir($path);
+        }
+        push @files, $path;
     }
-};
-
+);
 my $get_html = sub {
-    my $file = shift;
-    my $base_path = quotemeta $doc_dir;
-    return 'security error.' unless $file=~/^$base_path/;
-    return '404 not found.' unless -f $file;
-    if ($file->stat->mtime > $cache->{docs}->{$file->stringify}->{mtime}) {
-        my $text = $file->slurp;
-        my $html = Text::Markdown->new->markdown($text);
-        $cache->{docs}->{$file->stringify}->{mtime} = $file->stat->mtime;
-        $cache->{docs}->{$file->stringify}->{html} = $html;
-        return $html;
-    } else {
-        return $cache->{docs}->{$file->stringify}->{html};
-    }
+    my $path = shift;
+    $path.= $suffix;
+    warn "not found $path" unless exists $cache->{$path};
+    return '404 not found.' unless exists $cache->{$path};
+    return $cache->{$path};
 };
 
 my $app = sub {
@@ -90,8 +76,7 @@ my $app = sub {
     
     if (my $file = $req->param('file')) {
         $file.= $top if $file eq '/';
-        my $path = file($doc_dir, $file . $suffix)->resolve;
-        my $html = $get_html->($path);
+        my $html = $get_html->($file);
         $res->content_type('text/html; charset=UTF-8');
         $res->body($html);
     }
@@ -99,10 +84,8 @@ my $app = sub {
     else {
         my $file = substr $req->path, 1;
            $file ||= $top;
-        my $path = file($doc_dir, $file . $suffix)->resolve;
-        my $html = $get_html->($path);
+        my $html = $get_html->($file);
         my @dirs;
-        my @files = $get_files->();
         my $tx = Text::Xslate->new(
             path   => './',
             module => ['Text::Xslate::Bridge::TT2Like'],
