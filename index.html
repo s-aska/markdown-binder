@@ -16,20 +16,21 @@ function load_file(file) {
 }
 function do_load_file(file) {
     $.ajax({
-        url: '/?file=' + file,
+        url: '/',
+        data: { file: file },
         success: function(html){
             $("#content").html(html);
         }
     });
 }
-window.addEventListener("popstate", function (event) {
-    if (pushed) {
-        do_load_file(location.pathname);
-    }
-});
 $(document).ready(function() {
     if (history.pushState) {
         history.pushState("", "", location.protocol + "//" + location.host + location.pathname);
+		window.addEventListener("popstate", function (event) {
+		    if (pushed) {
+		        do_load_file(location.pathname);
+		    }
+		});
     }
     $("#sidebar dt").hover(function(){
         $(this).css("cursor","pointer"); 
