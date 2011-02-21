@@ -82,8 +82,8 @@ my $app = sub {
     }
 
     else {
-        my $file = substr $req->path, 1;
-           $file ||= $top;
+        my $file = $req->path;
+           $file.= $top if $file eq '/';
         my $html = $get_html->($file);
         my @dirs;
         my $tx = Text::Xslate->new(
