@@ -232,6 +232,7 @@ pre {
 }
 
 em {
+    font-style:normal;
     font-weight:bold;
 }
 
@@ -252,7 +253,11 @@ p{
 
 ul,ol{
     margin-left:20px;
-    margin-bottom:20px;
+    margin-bottom:16px;
+}
+
+ul p,ol p{
+    margin-bottom:8px;
 }
 
 code {

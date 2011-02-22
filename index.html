@@ -8,29 +8,44 @@
 var pushed = false;
 function load_file(file) {
     if (history.pushState) {
-        history.pushState("", "", location.protocol + "//" + location.host + file);
+        history.pushState(file, "", location.protocol + "//" + location.host + file);
     }
-    do_load_file(file);
-    pushed = true;
+    if (file == "/") {
+    	file = file + "TOP";
+    }
+    do_load_file(file + ".html");
     return false;
 }
-function do_load_file(file) {
+function autoHeight() {
+    $("#content").removeAttr('style');
+    $("#sidebar").removeAttr('style');
+    var sidebar_height = $("#sidebar").height();
+    var content_height = $("#content").height();
+    if (sidebar_height > content_height) {
+        $("#content").height(sidebar_height);
+    } else {
+        $("#sidebar").height(content_height);
+    }
+}
+function do_load_file(url, data) {
     $.ajax({
-        url: '/',
-        data: { file: file },
+        url: url,
+        data: data,
         success: function(html){
             $("#content").html(html);
+            pushed = true;
+            autoHeight();
         }
     });
 }
 $(document).ready(function() {
     if (history.pushState) {
-        history.pushState("", "", location.protocol + "//" + location.host + location.pathname);
-		window.addEventListener("popstate", function (event) {
-		    if (pushed) {
-		        do_load_file(location.pathname);
-		    }
-		});
+        history.pushState("/", "", location.protocol + "//" + location.host + location.pathname);
+        window.addEventListener("popstate", function (event) {
+            if (pushed) {
+                do_load_file(event.state + ".html");
+            }
+        });
     }
     $("#sidebar dt").hover(function(){
         $(this).css("cursor","pointer"); 
@@ -43,6 +58,7 @@ $(document).ready(function() {
             ele.slideToggle("fast");
         }
     });
+    autoHeight();
     /*
     $("#sidebar dd").each(function(){
         $(this).next().hide();
@@ -57,7 +73,7 @@ $(document).ready(function() {
 <body>
 <h1 id="siteTitle">The Document of Aska</h1>
 <div id="wrapper" class="clearfix">
-<nav id="sidebar">
+<nav id="sidebar" class="autoHeight-g1">
 [% SET dep = 0 %]
 [% SET cur_dep = 0 %]
 [% FOREACH file IN files %]
@@ -76,7 +92,7 @@ $(document).ready(function() {
 [% END %]
 [% '</dl>'.repeat(dep) | mark_raw %]
 </nav>
-<article>
+<article class="autoHeight-g1">
 <div id="content">[% content | mark_raw %]</div>
 </article>
 </div>

@@ -7,9 +7,13 @@ use Plack::Request;
 use Text::Markdown;
 use Text::Xslate;
 
-my $doc_dir = dir($ENV{'MARKDOWN_BINDER_DOC'} || './doc/')->absolute;
-my $top     = $ENV{'MARKDOWN_BINDER_TOP'} || 'TOP';
-my $suffix  = '.txt';
+my $doc_dir   = dir($ENV{'MARKDOWN_BINDER_DOC'} || './doc/')->absolute;
+my $top       = $ENV{'MARKDOWN_BINDER_TOP'} || 'TOP';
+my $suffix    = '.txt';
+my $cache_dir = dir($ENV{'MARKDOWN_BINDER_CACHE'} || './cache/')->absolute;
+
+$cache_dir->rmtree if -d $cache_dir;
+$cache_dir->mkpath;
 
 no strict 'refs';
 *{'Path::Class::Entity::depth'} = sub {
@@ -34,8 +38,6 @@ no strict 'refs';
   } @out;
 };
 
-my $cache = {};
-
 my @files;
 $doc_dir->recurse(
     preorder => 1,
@@ -49,7 +51,11 @@ $doc_dir->recurse(
             $path = file($path);
             my $text = $file->slurp;
             my $html = Text::Markdown->new->markdown($text);
-            $cache->{encode('utf8', $path)} = $html;
+            my $cache_file = file($cache_dir, substr($path, 0, -4) . '.html');
+            $cache_file->dir->mkpath unless -d $cache_file->dir;
+            my $fh = $cache_file->openw;
+            $fh->print($html);
+            $fh->close;
             warn 'cached ', $path;
         } else {
             $path = dir($path);
@@ -57,50 +63,38 @@ $doc_dir->recurse(
         push @files, $path;
     }
 );
-my $get_html = sub {
-    my $path = shift;
-    $path.= $suffix;
-    warn "not found $path" unless exists $cache->{$path};
-    return '404 not found.' unless exists $cache->{$path};
-    return $cache->{$path};
-};
 
 my $app = sub {
     my $req = Plack::Request->new(shift);
 
-    return [ 200, [ 'Content-Type' => 'text/plain' ], [ '' ] ]
-        if $req->path eq '/favicon.ico';
-
-
+    my $file = $req->path;
+       $file.= $top if $file eq '/';
+    my $path = file($cache_dir, $file . '.html');
+    if ($path->resolve!~/^$cache_dir/) {
+        return [ 200, [ 'Content-Type' => 'text/plain' ], [ '403 Forbidden.' ] ];
+    } elsif (!-f $path) {
+        return [ 200, [ 'Content-Type' => 'text/plain' ], [ '404 Not Found.' ] ];
+    }
+    my $html = $path->slurp;
+    my $tx = Text::Xslate->new(
+        path   => './',
+        module => ['Text::Xslate::Bridge::TT2Like'],
+        syntax => 'TTerse'
+    );
+    my $content = $tx->render('index.html', { files => \@files, content => $html });
     my $res = $req->new_response(200);
-    
-    if (my $file = $req->param('file')) {
-        $file.= $top if $file eq '/';
-        my $html = $get_html->($file);
-        $res->content_type('text/html; charset=UTF-8');
-        $res->body($html);
-    }
-
-    else {
-        my $file = $req->path;
-           $file.= $top if $file eq '/';
-        my $html = $get_html->($file);
-        my @dirs;
-        my $tx = Text::Xslate->new(
-            path   => './',
-            module => ['Text::Xslate::Bridge::TT2Like'],
-            syntax => 'TTerse'
-        );
-        my $content = $tx->render('index.html', { files => \@files, content => $html });
-        $res->content_type('text/html; charset=UTF-8');
-        $res->body(encode('utf8', $content));
-    }
+    $res->content_type('text/html; charset=UTF-8');
+    $res->body(encode('utf8', $content));
     
     return $res->finalize;
 };
 
 builder {
     enable 'Static',
-        path => qr!^/static!, root => './htdocs/';
+        path => qr!^/static|^(/favicon.ico|/robots.txt)$!, root => './htdocs/';
+    enable 'Static',
+        path => qr!\.html$!, root => $cache_dir;
+    enable 'Static',
+        path => qr!\.txt$!, root => $doc_dir;
     $app;
 };
