@@ -186,7 +186,14 @@ article{
 }
 
 #content{
+	position: relative;
     margin-left:20px;
+}
+.permalink {
+	position: absolute;
+	top: 0;
+	right: 0;
+	text-align: right;
 }
 
 footer{

@@ -26,12 +26,23 @@ function autoHeight() {
 }
 function permalink(file) {
 	var url = location.protocol + "//" + location.host + file;
-	var link = $(document.createElement('a'));
-	link.text('permalink');
-	link.attr('class', 'permalink');
-	link.attr('href', file);
-	// link.bind('click', function () { return load_file(file) });
-	$("#content").append(link);
+	var navi = $(document.createElement('span'));
+	navi.attr('class', 'permalink');
+	var plink = $(document.createElement('a'));
+	plink.text('permalink');
+	plink.attr('href', file);
+	var source = $(document.createElement('a'));
+	source.text('source');
+	if (file.length > 1) {
+		source.attr('href', file + '.txt');
+	} else {
+		source.attr('href', 'TOP.txt');
+	}
+	source.attr('target', '_blank');
+	navi.append(plink);
+	navi.append(document.createTextNode(' | '));
+	navi.append(source);
+	$("#content").append(navi);
 }
 function do_load_file(file) {
 	var url = file;
@@ -80,17 +91,6 @@ $(document).ready(function() {
     */
 });
 </script>
-<style>
-#content {
-	position: relative;
-}
-.permalink {
-	position: absolute;
-	top: 0;
-	right: 0;
-	text-align: right;
-}
-</style>
 <!--[if IE]>
 <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
 <![endif]-->
@@ -98,7 +98,7 @@ $(document).ready(function() {
 <body>
 <h1 id="siteTitle">The Document of Aska</h1>
 <div id="wrapper" class="clearfix">
-<nav id="sidebar" class="autoHeight-g1">
+<nav id="sidebar">
 [% SET dep = 0 %]
 [% SET cur_dep = 0 %]
 [% FOREACH file IN files %]
@@ -117,7 +117,7 @@ $(document).ready(function() {
 [% END %]
 [% '</dl>'.repeat(dep) | mark_raw %]
 </nav>
-<article class="autoHeight-g1">
+<article>
 <div id="content">[% content | mark_raw %]</div>
 </article>
 </div>
