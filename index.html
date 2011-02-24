@@ -44,6 +44,17 @@ function permalink(file) {
 	navi.append(source);
 	$("#content").append(navi);
 }
+function initContent(file) {
+	autoHeight();
+	permalink(file);
+    $("#content").find("a").each(function(){
+    	if ($(this).attr("href").match(/^https?:/)) {
+    		$(this).attr("target", "_blank");
+    	} else {
+    		$(this).bind("click", function(){return load_file(file)});
+    	}
+    });
+}
 function do_load_file(file) {
 	var url = file;
     if (url == "/") {
@@ -57,8 +68,7 @@ function do_load_file(file) {
         success: function(html){
             $("#content").html(html);
             pushed = true;
-            autoHeight();
-            permalink(file);
+            initContent(file);
         }
     });
 }
@@ -82,8 +92,7 @@ $(document).ready(function() {
             ele.slideToggle("fast");
         }
     });
-    autoHeight();
-    permalink(location.pathname);
+    initContent(location.pathname);
     /*
     $("#sidebar dd").each(function(){
         $(this).next().hide();
