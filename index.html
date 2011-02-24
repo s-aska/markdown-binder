@@ -10,10 +10,7 @@ function load_file(file) {
     if (history.pushState) {
         history.pushState(file, "", location.protocol + "//" + location.host + file);
     }
-    if (file == "/") {
-    	file = file + "TOP";
-    }
-    do_load_file(file + ".html");
+    do_load_file(file);
     return false;
 }
 function autoHeight() {
@@ -27,14 +24,30 @@ function autoHeight() {
         $("#sidebar").height(content_height);
     }
 }
-function do_load_file(url, data) {
+function permalink(file) {
+	var url = location.protocol + "//" + location.host + file;
+	var link = $(document.createElement('a'));
+	link.text('permalink');
+	link.attr('class', 'permalink');
+	link.attr('href', file);
+	// link.bind('click', function () { return load_file(file) });
+	$("#content").append(link);
+}
+function do_load_file(file) {
+	var url = file;
+    if (url == "/") {
+    	url = url + "TOP";
+    }
+    if (jQuery.browser.msie) {
+    	url = encodeURI(url);
+    }
     $.ajax({
-        url: url,
-        data: data,
+        url: url + ".html",
         success: function(html){
             $("#content").html(html);
             pushed = true;
             autoHeight();
+            permalink(file);
         }
     });
 }
@@ -43,7 +56,7 @@ $(document).ready(function() {
         history.pushState("/", "", location.protocol + "//" + location.host + location.pathname);
         window.addEventListener("popstate", function (event) {
             if (pushed) {
-                do_load_file(event.state + ".html");
+                do_load_file(event.state);
             }
         });
     }
@@ -59,6 +72,7 @@ $(document).ready(function() {
         }
     });
     autoHeight();
+    permalink(location.pathname);
     /*
     $("#sidebar dd").each(function(){
         $(this).next().hide();
@@ -66,6 +80,17 @@ $(document).ready(function() {
     */
 });
 </script>
+<style>
+#content {
+	position: relative;
+}
+.permalink {
+	position: absolute;
+	top: 0;
+	right: 0;
+	text-align: right;
+}
+</style>
 <!--[if IE]>
 <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
 <![endif]-->

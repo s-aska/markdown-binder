@@ -11,6 +11,7 @@ my $doc_dir   = dir($ENV{'MARKDOWN_BINDER_DOC'} || './doc/')->absolute;
 my $top       = $ENV{'MARKDOWN_BINDER_TOP'} || 'TOP';
 my $suffix    = '.txt';
 my $cache_dir = dir($ENV{'MARKDOWN_BINDER_CACHE'} || './cache/')->absolute;
+my $toppage   = $top . $suffix;
 
 $cache_dir->rmtree if -d $cache_dir;
 $cache_dir->mkpath;
@@ -34,6 +35,8 @@ no strict 'refs';
   }
   return sort {
     return $a->is_dir <=> $b->is_dir if $a->is_dir != $b->is_dir;
+    return ($b->basename eq $toppage) <=> ($a->basename eq $toppage)
+        if $a->basename eq $toppage or $b->basename eq $toppage;
     return $a cmp $b;
   } @out;
 };
