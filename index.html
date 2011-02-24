@@ -46,7 +46,6 @@ function permalink(file) {
 }
 function initContent(file) {
 	autoHeight();
-	permalink(file);
     $("#content").find("a").each(function(){
     	if ($(this).attr("href").match(/^https?:/)) {
     		$(this).attr("target", "_blank");
@@ -54,6 +53,7 @@ function initContent(file) {
     		$(this).bind("click", function(){return load_file(file)});
     	}
     });
+	permalink(file);
 }
 function do_load_file(file) {
 	var url = file;
