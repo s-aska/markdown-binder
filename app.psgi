@@ -9,6 +9,7 @@ use Text::Xslate;
 
 my $doc_dir   = dir($ENV{'MARKDOWN_BINDER_DOC'} || './doc/')->absolute;
 my $cache_dir = dir($ENV{'MARKDOWN_BINDER_CACHE'} || './cache/')->absolute;
+my $pass_file = file($ENV{'MARKDOWN_BINDER_PW'} || './.password');
 my $top       = $ENV{'MARKDOWN_BINDER_TOP'} || 'TOP';
 my $suffix    = '.txt';
 my $toppage   = $top . $suffix;
@@ -79,8 +80,24 @@ my $rebuild = sub {
 };
 $rebuild->();
 
-my $password = '';
+my $password = $pass_file->slurp if -f $pass_file;
 my $bad_ip = {};
+my $valid_password = sub {
+    my $req = shift;
+    if (!-f $pass_file) {
+        warn 'unset password.';
+    } elsif ($bad_ip->{ $req->address } > 5) {
+        warn 'attack ip ' . $req->address;
+        return 1;
+    } elsif ($password ne crypt($req->param('password'), $password)) {
+        warn 'invalid password ';
+        $bad_ip->{ $req->address }++;
+        return 1;
+    } else {
+        delete $bad_ip->{ $req->address };
+    }
+    return ;
+};
 
 my $res_200 = [ 200, [ 'Content-Type' => 'text/html' ], [ '' ] ];
 my $res_403 = [ 403, [ 'Content-Type' => 'text/html' ], [ '403 Forbidden.' ] ];
@@ -123,17 +140,19 @@ my $app = sub {
     
     if ($req->method eq 'POST') {
         
-        if ($bad_ip->{ $req->address } > 5) {
-            return $res_403;
-        } elsif ($req->param('password') ne $password) {
-            warn 'invalid password.';
-            $bad_ip->{ $req->address }++;
+        if ($valid_password->($req)) {
             return $res_403;
         }
         
         # change password
         elsif (my $new_password = $req->param('new_password')) {
-            $password = $new_password;
+            my $fh = $pass_file->openw;
+            my @salts = ( "A".."Z", "a".."z", "0".."9", ".", "/" );
+            my $salt = $salts[int(rand(64))] . $salts[int(rand(64))];
+            $password = crypt($new_password, $salt);
+            $fh->print($password);
+            $fh->close;
+            chmod 0600, $pass_file;
             return $res_200;
         }
         
