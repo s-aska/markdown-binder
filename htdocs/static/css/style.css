@@ -162,7 +162,7 @@ nav{
     height:auto;
 }
 
-nav dt{
+nav dt span{
     font-size:14px;
     font-weight:bold;
 }
@@ -189,13 +189,12 @@ article{
 	position: relative;
     margin-left:20px;
 }
-.permalink {
+.pagemenu {
 	position: absolute;
 	top: 0;
 	right: 0;
 	text-align: right;
 }
-
 footer{
     text-align:center;
     padding:20px 0;
@@ -265,6 +264,9 @@ ul,ol{
 
 ul p,ol p{
     margin-bottom:4px;
+}
+ul ul ul ul,ol ol ol ol{
+    margin-bottom:0;
 }
 
 code {

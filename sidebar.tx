@@ -1,0 +1,17 @@
+[% SET dep = 0 %]
+[% SET cur_dep = 0 %]
+[% FOREACH file IN files %]
+[% SET cur_dep = file.depth %]
+[% IF dep < cur_dep %]
+[% '<dl>'.repeat(cur_dep - dep) | mark_raw %][% SET dep = cur_dep %]
+[% ELSIF dep > cur_dep %]
+[% '</dl>'.repeat(dep - cur_dep) | mark_raw %][% SET dep = cur_dep %]
+[% END %]
+[% IF file.is_dir %]
+<dt data-file="[% file.stringify %]"><span>[% file.basename %]</span></dt>
+[% ELSE %]
+[% SET path = file == '/TOP.txt' ? '/' : file.stringify.replace('.txt$', '') %]
+<dd data-file="[% path %]"><a data-file="[% path %]" href="[% path %]">[% file.basename.replace('.txt$', '') %]</a></dd>
+[% END %]
+[% END %]
+[% '</dl>'.repeat(dep) | mark_raw %]

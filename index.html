@@ -6,128 +6,649 @@
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"></script>
 <script>
 var pushed = false;
+var logined = false;
+var expanded = false;
 function load_file(file) {
     if (history.pushState) {
-        history.pushState(file, "", location.protocol + "//" + location.host + file);
+        history.pushState(file, '', location.protocol + '//' + location.host + file);
     }
     do_load_file(file);
     return false;
 }
-function autoHeight() {
-    $("#content").removeAttr('style');
-    $("#sidebar").removeAttr('style');
-    var sidebar_height = $("#sidebar").height();
-    var content_height = $("#content").height();
-    if (sidebar_height > content_height) {
-        $("#content").height(sidebar_height);
-    } else {
-        $("#sidebar").height(content_height);
-    }
-}
-function permalink(file) {
-	var url = location.protocol + "//" + location.host + file;
-	var navi = $(document.createElement('span'));
-	navi.attr('class', 'permalink');
-	var plink = $(document.createElement('a'));
-	plink.text('permalink');
-	plink.attr('href', file);
-	var source = $(document.createElement('a'));
-	source.text('source');
-	if (file.length > 1) {
-		source.attr('href', file + '.txt');
-	} else {
-		source.attr('href', 'TOP.txt');
-	}
-	source.attr('target', '_blank');
-	navi.append(plink);
-	navi.append(document.createTextNode(' | '));
-	navi.append(source);
-	$("#content").append(navi);
-}
-function initContent(file) {
-	autoHeight();
-    $("#content").find("a").each(function(){
-    	if ($(this).attr("href").match(/^https?:/)) {
-    		$(this).attr("target", "_blank");
-    	} else {
-    		$(this).bind("click", function(){return load_file(file)});
-    	}
-    });
-	permalink(file);
-}
 function do_load_file(file) {
-	var url = file;
-    if (url == "/") {
-    	url = url + "TOP";
+    var url = file;
+    if (url == '/') {
+        url = url + 'TOP';
     }
     if (jQuery.browser.msie) {
-    	url = encodeURI(url);
+        url = encodeURI(url);
     }
     $.ajax({
-        url: url + ".html",
+        url: url + '.html',
         success: function(html){
-            $("#content").html(html);
+            $('#content').html('<div id="document">' + html + '</div>');
             pushed = true;
-            initContent(file);
+            init_content(file);
+        },
+        error: function(XMLHttpRequest, status, errorThrown){
+            $('#content').html('<div id="document">' + status + ': ' + errorThrown + '</div>');
         }
     });
 }
+function init_height() {
+    $('#content').removeAttr('style');
+    $('#sidebar').removeAttr('style');
+    var sidebar_height = $('#sidebar').height();
+    var content_height = $('#content').height();
+    if (sidebar_height > content_height) {
+        $('#content').height(sidebar_height);
+    } else {
+        $('#sidebar').height(content_height);
+    }
+}
+function init_content(file) {
+    
+    // init height
+    init_height();
+    
+    // bind click event
+    $('#content').find('a').each(function(){
+        if ($(this).attr('href').match(/^https?:/)) {
+            $(this).attr('target', '_blank');
+        } else {
+            $(this).bind('click', function(){return load_file(file)});
+        }
+    });
+    
+    // show pagemenu
+    pagemenu(file);
+}
+function init_sidebar(html) {
+    if (html) {
+        $('#pages').html(html);
+    }
+    $('#sidebar').find('a').each(function(){
+        var a = $(this);
+        a.bind('click', function(){
+            load_file(a.data('file'));
+            return false;
+        });
+    });
+    if (logined) {
+        $('#sidebar').find('dt').each(function(){
+            var dt = $(this);
+            var file = dt.data('file');
+            var rename = $(document.createElement('a'));
+            rename.text('rename');
+            rename.attr('href', '#');
+            rename.bind('click', function(){
+                dialog('rename dir', 'text', file, function(value, finalize){
+                    $.ajax({
+                        url: file,
+                        type: 'POST',
+                        cache: false,
+                        data: { rename_dir: value, password: logined },
+                        success: function(html){
+                            init_sidebar(html);
+                            finalize();
+                        },
+                        error: function(XMLHttpRequest, status, errorThrown){
+                            $('#dialogResutMessage').text(status + ': ' + errorThrown);
+                        }
+                    });
+                });
+                return false;
+            });
+            rename.hide();
+            var del = $(document.createElement('a'));
+            del.text('delete');
+            del.attr('href', '#');
+            del.bind('click', function(){
+                dialog('delete dir now ?', 'hidden', file, function(value, finalize){
+                    $.ajax({
+                        url: file,
+                        type: 'POST',
+                        cache: false,
+                        data: { delete_dir: 1, password: logined },
+                        success: function(html){
+                            init_sidebar(html);
+                            finalize();
+                        },
+                        error: function(XMLHttpRequest, status, errorThrown){
+                            $('#dialogResutMessage').text(status + ': ' + errorThrown);
+                        }
+                    });
+                });
+                return false;
+            });
+            del.hide();
+            dt.append(document.createTextNode(' '));
+            dt.append(rename);
+            dt.append(document.createTextNode(' '));
+            dt.append(del);
+        });
+    }
+    $('#sidebar dt span').hover(function(){
+        $(this).css('cursor','pointer');
+    },function(){
+        $(this).css('cursor','default');
+    });
+    $('#sidebar dt span').click(function(){
+        var dt = $(this).parent();
+        var ele = dt.next();
+        if (ele.length > 0 && ele.get(0).tagName.toLowerCase() == 'dl') {
+            ele.slideToggle('fast');
+        }
+        if (logined) {
+            dt.find('a').each(function(){
+                $(this).slideToggle('fast');
+            });
+        }
+    });
+}
+function expand() {
+    if (expanded) {
+        $('#sidebar dl dl').each(function(){
+            $(this).hide();
+        });
+        expanded = false;
+    } else {
+        $('#sidebar dl dl').each(function(){
+            $(this).show();
+        });
+        expanded = true;
+        init_height();
+    }
+}
+function pagemenu(file) {
+    var pagemenu = $(document.createElement('div'));
+    pagemenu.attr('id', 'pagemenu');
+    pagemenu.attr('class', 'pagemenu');
+    var permalink = $(document.createElement('a'));
+    permalink.text('permalink');
+    permalink.attr('href', file);
+    var source_url = file.length > 1 ? file : '/TOP';
+    var source = $(document.createElement('a'));
+    source.text('source');
+    source.attr('href', source_url + '.txt');
+    source.attr('target', '_blank');
+    pagemenu.append(permalink);
+    pagemenu.append(document.createTextNode(' | '));
+    pagemenu.append(source);
+    if (logined) {
+        adminmenu(pagemenu, source_url);
+    }
+    $('#content').append(pagemenu);
+}
+
+
+
 $(document).ready(function() {
     if (history.pushState) {
-        history.pushState("/", "", location.protocol + "//" + location.host + location.pathname);
-        window.addEventListener("popstate", function (event) {
+        history.pushState('/', '', location.protocol + '//' + location.host + location.pathname);
+        window.addEventListener('popstate', function (event) {
             if (pushed) {
                 do_load_file(event.state);
             }
         });
     }
-    $("#sidebar dt").hover(function(){
-        $(this).css("cursor","pointer"); 
-    },function(){
-        $(this).css("cursor","default"); 
+    init_content(location.pathname);
+    [% IF set_password %]
+    dialog('please init password', 'password', '', function(value, finalize){
+        $.ajax({
+            url: '/',
+            type: 'POST',
+            cache: false,
+            data: { password: '', new_password: value },
+            success: function(html){
+                logined = value;
+                var file = location.pathname;
+                var source_url = file.length > 1 ? file : '/TOP';
+                adminmenu($('#pagemenu'), source_url);
+                $('#adminsidemenu').show();
+                init_sidebar();
+                finalize();
+            },
+            error: function(){
+                $('#dialogResutMessage').text('invalid password.');
+            }
+        });
     });
-    $("#sidebar dt").click(function(){
-        var ele = $(this).next();
-        if (ele.length > 0 && ele.get(0).tagName.toLowerCase() == "dl") {
-            ele.slideToggle("fast");
-        }
+    [% ELSIF !login %]
+    init_sidebar();
+    [% ELSE %]
+    dialog('please input password', 'password', '', function(value, finalize){
+        $.ajax({
+            url: '/',
+            type: 'POST',
+            cache: false,
+            data: { login_check: 1, password: value },
+            success: function(html){
+                logined = value;
+                var file = location.pathname;
+                var source_url = file.length > 1 ? file : '/TOP';
+                adminmenu($('#pagemenu'), source_url);
+                $('#adminsidemenu').show();
+                init_sidebar();
+                finalize();
+            },
+            error: function(){
+                $('#dialogResutMessage').text('invalid password.');
+            }
+        });
     });
-    initContent(location.pathname);
+    [% END %]
     /*
-    $("#sidebar dd").each(function(){
-        $(this).next().hide();
+    $('#sidebar dl dl').each(function(){
+        $(this).hide();
+    });
+    $('#sidebar dd').each(function(){
+        var dd = $(this);
+        var file = dd.data('file');
+        if (file && location.pathname == file) {
+            dd.parents('dl').each(function(){
+                $(this).show();
+            });
+        }
     });
     */
 });
+
+function dialog(message, inputType, inputValue, callback) {
+    
+    var body = $('body');
+    var overlay = $(document.createElement('div'));
+    overlay.attr('class', 'dialogOverlay');
+    overlay.height($(document).height());
+    
+    var dialog = $(document.createElement('div'));
+    dialog.attr('id', 'dialog');
+    dialog.attr('class', 'dialog');
+    
+    var finalize = function(){
+        overlay.remove();
+        dialog.remove();
+    };
+    
+    var messageElement = $(document.createElement('div'));
+    messageElement.attr('class', 'dialogMessage');
+    messageElement.text(message);
+    dialog.append(messageElement);
+    
+    var input = $(document.createElement('input'));
+    input.attr('type', inputType);
+    input.val(inputValue);
+    dialog.append(input);
+    
+    var ok = $(document.createElement('input'));
+    ok.attr('type', 'button');
+    ok.attr('value', 'OK');
+    ok.bind('click', function(){
+        callback(input.val(), finalize);
+    });
+    
+    var cancel = $(document.createElement('input'));
+    cancel.attr('type', 'button');
+    cancel.attr('value', 'CANCEL');
+    cancel.bind('click', function(){
+        finalize();
+    });
+    
+    var buttons = $(document.createElement('div'));
+    buttons.append(ok);
+    buttons.append(cancel);
+    
+    dialog.append(buttons);
+    
+    var result = $(document.createElement('div'));
+    result.attr('id', 'dialogResutMessage');
+    result.attr('class', 'dialogResutMessage');
+    dialog.append(result);
+    
+    body.append(overlay);
+    body.append(dialog);
+    
+    input.focus();
+    input.keypress(function (e) {
+        if (e.keyCode == 13) {
+            ok.click();
+        } else {
+            console.log(e.keyCode);
+        }
+    });
+    
+    dialog.css('margin-top', (dialog.height() / 2 * -1) + 'px');
+    dialog.css('margin-left', (dialog.width() / 2 * -1) + 'px');
+}
+
+function edit_file(source_url) {
+    if ($('#editmenu').length > 0) {
+        return false;
+    }
+    
+    var doc = $('#document');
+    var adminmenu = $('#adminmenu');
+    
+    var editor = $(document.createElement('textarea'));
+    editor.attr('id', 'editor');
+    
+    var preview = $(document.createElement('div'));
+    preview.attr('id', 'preview');
+    
+    var loading = $(document.createElement('div'));
+    loading.attr('id', 'loading');
+    loading.text('loading...');
+    
+    var edit_button = $(document.createElement('a'));
+    edit_button.attr('href', '#');
+    edit_button.text('edit');
+    edit_button.bind('click', function(){
+        editor.show();
+        preview.hide();
+        return false;
+    });
+    var preview_button = $(document.createElement('a'));
+    
+    preview_button.attr('href', '#');
+    preview_button.text('preview');
+    preview_button.bind('click', function(){
+        loading.text('processing...');
+        loading.show();
+        editor.hide();
+        $.ajax({
+            url: '/',
+            type: 'POST',
+            data: { password: logined, content: editor.val() },
+            success: function(html){
+                loading.hide();
+                preview.html(html);
+                preview.show();
+            },
+            error: function(){
+                loading.text('auth error.');
+            }
+        });
+        return false;
+    });
+    
+    var discard_button = $(document.createElement('a'));
+    discard_button.attr('href', '#');
+    discard_button.text('discard');
+    discard_button.bind('click', function(){
+        editor.remove();
+        editmenu.remove();
+        preview.remove();
+        doc.show();
+        adminmenu.show();
+        return false;
+    });
+    
+    var save_button = $(document.createElement('a'));
+    save_button.attr('href', '#');
+    save_button.text('save');
+    save_button.bind('click', function(){
+        loading.text('saving...');
+        loading.show();
+        $.ajax({
+            url: source_url,
+            type: 'POST',
+            data: { save: 1, password: logined, content: $('#editor').val() },
+            success: function(html){
+                doc.html(html);
+                doc.show();
+                adminmenu.show();
+                loading.remove();
+                editor.remove();
+                editmenu.remove();
+                preview.remove();
+            },
+            error: function(){
+                loading.text('auth error.');
+            }
+        });
+        return false;
+    });
+    
+    var width = doc.width();
+    var height = doc.height();
+    if (height < 400) { height = 400 };
+    $.ajax({
+        url: source_url + '.txt',
+        cache: false,
+        success: function(html){
+            loading.hide();
+            editor.text(html);
+            editor.width(width);
+            editor.height(height);
+            editor.show();
+        }
+    });
+    
+    var editmenu = $(document.createElement('div'));
+    editmenu.attr('id', 'editmenu');
+    editmenu.attr('style', 'margin-bottom: 10px;');
+    editmenu.append(edit_button);
+    editmenu.append(document.createTextNode(' | '));
+    editmenu.append(preview_button);
+    editmenu.append(document.createTextNode(' | '));
+    editmenu.append(discard_button);
+    editmenu.append(document.createTextNode(' | '));
+    editmenu.append(save_button);
+    doc.hide();
+    adminmenu.hide();
+    $('#content').append(editmenu);
+    $('#content').append(loading);
+    $('#content').append(editor);
+    $('#content').append(preview);
+    
+    return false;
+}
+function newpageDialog(source_url) {
+    dialog('new page', 'text', source_url, function(value, finalize){
+        $.ajax({
+            url: value,
+            type: 'POST',
+            cache: false,
+            data: { create: 1, password: logined },
+            success: function(html){
+                init_sidebar(html);
+                finalize();
+            },
+            error: function(XMLHttpRequest, status, errorThrown){
+                $('#dialogResutMessage').text(status + ': ' + errorThrown);
+            }
+        });
+    });
+}
+function rebuildDialog() {
+    dialog('rebuild now ?', 'hidden', '', function(value, finalize){
+        $.ajax({
+            url: '/',
+            type: 'POST',
+            cache: false,
+            data: { rebuild: 1, password: logined },
+            success: function(html){
+                init_sidebar(html);
+                finalize();
+            },
+            error: function(){
+                $('#dialogResutMessage').text('error.');
+            }
+        });
+    });
+}
+function adminmenu(pagemenu, source_url) {
+    //return ;
+    
+    var editpage = $(document.createElement('a'));
+    editpage.attr('href', '#');
+    editpage.text('edit');
+    editpage.bind('click', function(){edit_file(source_url); return false;});
+    
+    var newpage = $(document.createElement('a'));
+    newpage.attr('href', '#');
+    newpage.text('new');
+    newpage.bind('click', function(){
+        newpageDialog(source_url);
+        return false;
+    });
+    
+    var copypage = $(document.createElement('a'));
+    copypage.attr('href', '#');
+    copypage.text('copy');
+    copypage.bind('click', function(){
+        dialog('copy page', 'text', source_url, function(value, finalize){
+            $.ajax({
+                url: source_url,
+                type: 'POST',
+                cache: false,
+                data: { copy: value, password: logined },
+                success: function(html){
+                    init_sidebar(html);
+                    finalize();
+                },
+                error: function(){
+                    $('#dialogResutMessage').text('error.');
+                }
+            });
+        });
+        return false;
+    });
+    
+    var renamepage = $(document.createElement('a'));
+    renamepage.attr('href', '#');
+    renamepage.text('rename');
+    renamepage.bind('click', function(){
+        dialog('rename page', 'text', source_url, function(value, finalize){
+            $('#content').html('<div id="document">renamed this page.</div>');
+            $.ajax({
+                url: source_url,
+                type: 'POST',
+                cache: false,
+                data: { rename: value, password: logined },
+                success: function(html){
+                    init_sidebar(html);
+                    finalize();
+                },
+                error: function(XMLHttpRequest, status, errorThrown){
+                    $('#dialogResutMessage').text(status + ': ' + errorThrown);
+                }
+            });
+        });
+        return false;
+    });
+    
+    var deletepage = $(document.createElement('a'));
+    deletepage.attr('href', '#');
+    deletepage.text('delete');
+    deletepage.bind('click', function(){
+        dialog('delete this page now ?', 'hidden', '', function(value, finalize){
+            $('#content').html('<div id="document">deleted this page.</div>');
+            $.ajax({
+                url: source_url,
+                type: 'POST',
+                cache: false,
+                data: { delete: 1, password: logined },
+                success: function(html){
+                    $('dd').each(function(){
+                        var dd = $(this);
+                        var file = dd.data('file');
+                        if (file && source_url == file) {
+                            dd.remove();
+                        }
+                    });
+                    finalize();
+                },
+                error: function(){
+                    $('#dialogResutMessage').text('error.');
+                }
+            });
+        });
+        return false;
+    });
+    
+    var adminmenu = $(document.createElement('div'));
+    adminmenu.attr('id', 'adminmenu');
+    adminmenu.append(editpage);
+    adminmenu.append(document.createTextNode(' | '));
+    adminmenu.append(newpage);
+    adminmenu.append(document.createTextNode(' | '));
+    adminmenu.append(copypage);
+    adminmenu.append(document.createTextNode(' | '));
+    adminmenu.append(renamepage);
+    adminmenu.append(document.createTextNode(' | '));
+    adminmenu.append(deletepage);
+    
+    pagemenu.append(adminmenu);
+}
+
+
 </script>
 <!--[if IE]>
 <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
 <![endif]-->
+<style>
+.dialog {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    background-color: #ffffff;
+    padding: 20px;
+    border: 4px solid black;
+    z-index: 99999;
+    margin: 0;
+    opacity: 1;
+}
+.dialogOverlay {
+    position: absolute;
+    z-index: 99998;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    background-color: #000000;
+    opacity: .8;
+}
+.dialogMessage {
+    
+}
+.dialogButtons {
+    text-align: center;
+}
+.dialogButtons input {
+    padding: 10px;
+}
+.dialogResutMessage {
+    color: red;
+}
+#sidebar {
+    position: relative;
+}
+#sidebar dt a {
+    font-weight: normal;
+}
+#sidemenu {
+    position: absolute;
+    top: 20px;
+    right: 0;
+}
+</style>
 </head>
 <body>
 <h1 id="siteTitle">The Document of Aska</h1>
 <div id="wrapper" class="clearfix">
 <nav id="sidebar">
-[% SET dep = 0 %]
-[% SET cur_dep = 0 %]
-[% FOREACH file IN files %]
-[% SET cur_dep = file.depth %]
-[% IF dep < cur_dep %]
-[% '<dl>'.repeat(cur_dep - dep) | mark_raw %][% SET dep = cur_dep %]
-[% ELSIF dep > cur_dep %]
-[% '</dl>'.repeat(dep - cur_dep) | mark_raw %][% SET dep = cur_dep %]
-[% END %]
-[% IF file.is_dir %]
-<dt>[% file.basename %]</dt>
-[% ELSE %]
-[% SET path = file == '/TOP.txt' ? '/' : file.stringify.replace('.txt$', '') %]
-<dd><a onClick="return load_file($(this).data().file)" data-file="[% path %]" href="[% path %]">[% file.basename.replace('.txt$', '') %]</a></dd>
-[% END %]
-[% END %]
-[% '</dl>'.repeat(dep) | mark_raw %]
+<div id="pages">
+[% INCLUDE 'sidebar.tx' %]
+</div>
+<div id="sidemenu">
+<a href="#" onclick="expand(); return false;">expand</a>
+<span id="adminsidemenu" style="display: none;"> | 
+<a href="#" onclick="newpageDialog(''); return false;">new</a> | 
+<a href="#" onclick="rebuildDialog(); return false;">rebuild</a>
+</span>
 </nav>
 <article>
-<div id="content">[% content | mark_raw %]</div>
+<div id="content"><div id="document">[% content | mark_raw %]</div></div>
 </article>
 </div>
 <footer>© 2011 <a href="http://www.7kai.org/">七階</a></footer>

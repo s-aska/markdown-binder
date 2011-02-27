@@ -8,14 +8,12 @@ use Text::Markdown;
 use Text::Xslate;
 
 my $doc_dir   = dir($ENV{'MARKDOWN_BINDER_DOC'} || './doc/')->absolute;
+my $cache_dir = dir($ENV{'MARKDOWN_BINDER_CACHE'} || './cache/')->absolute;
 my $top       = $ENV{'MARKDOWN_BINDER_TOP'} || 'TOP';
 my $suffix    = '.txt';
-my $cache_dir = dir($ENV{'MARKDOWN_BINDER_CACHE'} || './cache/')->absolute;
 my $toppage   = $top . $suffix;
 
-$cache_dir->rmtree if -d $cache_dir;
-$cache_dir->mkpath;
-
+# override Path::Class method
 no strict 'refs';
 *{'Path::Class::Entity::depth'} = sub {
   my ($self) = @_;
@@ -42,54 +40,218 @@ no strict 'refs';
 };
 
 my @files;
-$doc_dir->recurse(
-    preorder => 1,
-    depthfirst => 1,
-    callback => sub {
-        my $file = shift;
-        my $path = decode('utf8', $file);
-        $path=~s|^$doc_dir||;
-        return unless length $path;
-        if (-f $file) {
-            $path = file($path);
-            my $text = $file->slurp;
-            my $html = Text::Markdown->new->markdown($text);
-            my $cache_file = file($cache_dir, substr($path, 0, -4) . '.html');
-            $cache_file->dir->mkpath unless -d $cache_file->dir;
-            my $fh = $cache_file->openw;
-            $fh->print($html);
-            $fh->close;
-            warn 'cached ', $path;
-        } else {
-            $path = dir($path);
+my $rebuild = sub {
+    my $cache_clean = shift;
+    @files = ();
+    if ($cache_clean) {
+        $cache_dir->rmtree if -d $cache_dir;
+        $cache_dir->mkpath;
+    }
+    $doc_dir->recurse(
+        preorder => 1,
+        depthfirst => 1,
+        callback => sub {
+            my $file = shift;
+            my $path = decode('utf8', $file);
+            $path=~s|^$doc_dir||;
+            return unless length $path;
+            if (-f $file && $file=~/$suffix$/) {
+                $path = file($path);
+                my $text = $file->slurp;
+                my $html = Text::Markdown->new->markdown($text);
+                my $cache_file = file($cache_dir, substr($path, 0, -4) . '.html');
+                if (!-f $cache_file) {
+                    $cache_file->dir->mkpath unless -d $cache_file->dir;
+                    my $fh = $cache_file->openw;
+                    $fh->print($html);
+                    $fh->close;
+                    warn 'create cached ', $path;
+                } else {
+                    warn 'find cached ', $path;
+                }
+            } elsif (-d $file) {
+                $path = dir($path);
+                warn 'find dir ', $path;
+            }
+            push @files, $path;
         }
-        push @files, $path;
-    }
-);
+    );
+};
+$rebuild->();
 
-my $app = sub {
-    my $req = Plack::Request->new(shift);
+my $password = '';
+my $bad_ip = {};
 
-    my $file = $req->path;
-       $file.= $top if $file eq '/';
-    my $path = file($cache_dir, $file . '.html');
-    if ($path->resolve!~/^$cache_dir/) {
-        return [ 200, [ 'Content-Type' => 'text/plain' ], [ '403 Forbidden.' ] ];
-    } elsif (!-f $path) {
-        return [ 200, [ 'Content-Type' => 'text/plain' ], [ '404 Not Found.' ] ];
-    }
-    my $html = $path->slurp;
+my $res_200 = [ 200, [ 'Content-Type' => 'text/html' ], [ '' ] ];
+my $res_403 = [ 403, [ 'Content-Type' => 'text/html' ], [ '403 Forbidden.' ] ];
+my $res_404 = [ 404, [ 'Content-Type' => 'text/html' ], [ '404 Not Found.' ] ];
+
+my $check_path = sub {
+    return 1 if grep($_ eq '..', split('/', shift));
+    return ;
+};
+
+my $render = sub {
+    my ($req, $path, $params) = @_;
     my $tx = Text::Xslate->new(
         path   => './',
         module => ['Text::Xslate::Bridge::TT2Like'],
         syntax => 'TTerse'
     );
-    my $content = $tx->render('index.html', { files => \@files, content => $html });
+    my $content = $tx->render($path, $params);
     my $res = $req->new_response(200);
     $res->content_type('text/html; charset=UTF-8');
     $res->body(encode('utf8', $content));
-    
     return $res->finalize;
+};
+
+my $render_sidebar = sub {
+    $render->(shift, 'sidebar.tx', { files => \@files });
+};
+
+my $app = sub {
+    my $req = Plack::Request->new(shift);
+    
+    # check path
+    return $res_403 if $check_path->($req->path);
+
+    my $file = $req->path;
+       $file.= $top if $file eq '/';
+    
+    my $cache_file = file($cache_dir, $file . '.html');
+    my $text_file = file($doc_dir, $file . '.txt');
+    
+    if ($req->method eq 'POST') {
+        
+        if ($bad_ip->{ $req->address } > 5) {
+            return $res_403;
+        } elsif ($req->param('password') ne $password) {
+            warn 'invalid password.';
+            $bad_ip->{ $req->address }++;
+            return $res_403;
+        }
+        
+        # change password
+        elsif (my $new_password = $req->param('new_password')) {
+            $password = $new_password;
+            return $res_200;
+        }
+        
+        # login
+        elsif ($req->param('login_check')) {
+            return $res_200;
+        }
+        
+        # rebuild
+        elsif ($req->param('rebuild')) {
+            $rebuild->(1);
+            return $render_sidebar->($req);
+        }
+        
+        # new page
+        elsif ($req->param('create')) {
+            if (-f $text_file) {
+                return $res_403;
+            }
+            $text_file->dir->mkpath unless -d $text_file->dir;
+            $text_file->openw->close;
+            $rebuild->();
+            return $render_sidebar->($req);
+        }
+        
+        # copy page
+        elsif (my $dest = $req->param('copy')) {
+            return $res_403 if $check_path->($dest);
+            my $dest_file = file($doc_dir, $dest . '.txt');
+            return $res_403 if -f $dest_file;
+            $dest_file->dir->mkpath unless -d $dest_file->dir;
+            my $dest_fh = $dest_file->openw;
+            $dest_fh->print($text_file->slurp);
+            $dest_fh->close;
+            $rebuild->();
+            return $render_sidebar->($req);
+        }
+        
+        # rename page
+        elsif (my $dest = $req->param('rename')) {
+            return $res_403 if $check_path->($dest);
+            my $dest_file = file($doc_dir, $dest . '.txt');
+            return $res_403 if -f $dest_file;
+            $dest_file->dir->mkpath unless -d $dest_file->dir;
+            rename($text_file, $dest_file);
+            $cache_file->remove;
+            $rebuild->();
+            return $render_sidebar->($req);
+        }
+        
+        # delete page
+        elsif ($req->param('delete')) {
+            if (-f $text_file) {
+                $text_file->remove;
+                $cache_file->remove;
+                return $res_200;
+            } else {
+                return $res_404;
+            }
+        }
+        
+        # rename dir
+        elsif (my $dest = $req->param('rename_dir')) {
+            return $res_403 if $check_path->($dest);
+            my $src_dir = dir($doc_dir, $file);
+            my $dest_dir = dir($doc_dir, $dest);
+            my $cache_dest_dir = dir($cache_dir, $dest);
+            $dest_dir->parent->mkpath unless -d $dest_dir->parent;
+            if (-d $src_dir) {
+                rename($src_dir, $dest_dir);
+                rename($cache_file, $cache_dest_dir);
+                $rebuild->();
+                return $render_sidebar->($req);
+            } else {
+                return $res_404;
+            }
+        }
+        
+        # delete dir
+        elsif ($req->param('delete_dir')) {
+            my $dir = dir($doc_dir, $file);
+            my $cache_dir = dir($cache_dir, $file);
+            if (-d $dir) {
+                $dir->rmtree;
+                $cache_dir->rmtree;
+                $rebuild->();
+                return $render_sidebar->($req);
+            } else {
+                return $res_404;
+            }
+        }
+        
+        # save or preview
+        else {
+            my $html = Text::Markdown->new->markdown($req->param('content'));
+            if ($req->param('save')) {
+                my $fh = $text_file->openw;
+                $fh->print($req->param('content'));
+                $fh->close;
+                my $cache_fh = $cache_file->openw;
+                $cache_fh->print($html);
+                $cache_fh->close;
+            }
+            return [ 200, [ 'Content-Type' => 'text/html' ], [ $html ] ];
+        }
+    }
+    
+    if ($req->param('sidebar')) {
+        return $render_sidebar->($req);
+    }
+    
+    if (!-f $cache_file) {
+        return $res_404;
+    }
+    
+    my $html = $cache_file->slurp;
+    
+    return $render->($req, 'index.html', { files => \@files, content => $html, login => $req->param('login') || 0, set_password => not length $password });
 };
 
 builder {
