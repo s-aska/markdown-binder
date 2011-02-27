@@ -7,7 +7,7 @@
 <script>
 var pushed = false;
 var logined = false;
-var expanded = false;
+var expanded = true;
 function load_file(file) {
     if (history.pushState) {
         history.pushState(file, '', location.protocol + '//' + location.host + file);
@@ -56,12 +56,14 @@ function init_content(file) {
         if ($(this).attr('href').match(/^https?:/)) {
             $(this).attr('target', '_blank');
         } else {
-            $(this).bind('click', function(){return load_file(file)});
+            $(this).bind('click', function(){ load_file($(this).attr('href')); return false;});
         }
     });
     
     // show pagemenu
-    pagemenu(file);
+    if (file) {
+        pagemenu(file);
+    }
 }
 function init_sidebar(html) {
     if (html) {
@@ -396,6 +398,7 @@ function edit_file(source_url) {
             success: function(html){
                 doc.html(html);
                 doc.show();
+                init_content();
                 adminmenu.show();
                 loading.remove();
                 editor.remove();
@@ -443,8 +446,10 @@ function edit_file(source_url) {
     
     return false;
 }
-function newpageDialog(source_url) {
-    dialog('new page', 'text', source_url, function(value, finalize){
+function newpageDialog() {
+    var url = location.pathname;
+    url = url.replace(/[^\/]*$/, '');
+    dialog('new page', 'text', url, function(value, finalize){
         $.ajax({
             url: value,
             type: 'POST',
@@ -478,20 +483,11 @@ function rebuildDialog() {
     });
 }
 function adminmenu(pagemenu, source_url) {
-    //return ;
     
     var editpage = $(document.createElement('a'));
     editpage.attr('href', '#');
     editpage.text('edit');
     editpage.bind('click', function(){edit_file(source_url); return false;});
-    
-    var newpage = $(document.createElement('a'));
-    newpage.attr('href', '#');
-    newpage.text('new');
-    newpage.bind('click', function(){
-        newpageDialog(source_url);
-        return false;
-    });
     
     var copypage = $(document.createElement('a'));
     copypage.attr('href', '#');
@@ -571,8 +567,6 @@ function adminmenu(pagemenu, source_url) {
     adminmenu.attr('id', 'adminmenu');
     adminmenu.append(editpage);
     adminmenu.append(document.createTextNode(' | '));
-    adminmenu.append(newpage);
-    adminmenu.append(document.createTextNode(' | '));
     adminmenu.append(copypage);
     adminmenu.append(document.createTextNode(' | '));
     adminmenu.append(renamepage);
@@ -643,7 +637,7 @@ function adminmenu(pagemenu, source_url) {
 <div id="sidemenu">
 <a href="#" onclick="expand(); return false;">expand</a>
 <span id="adminsidemenu" style="display: none;"> | 
-<a href="#" onclick="newpageDialog(''); return false;">new</a> | 
+<a href="#" onclick="newpageDialog(); return false;">new</a> | 
 <a href="#" onclick="rebuildDialog(); return false;">rebuild</a>
 </span>
 </nav>
