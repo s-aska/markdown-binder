@@ -112,6 +112,7 @@ MarkdownBinder.prototype = {
                     data: { password: '', new_password: value },
                     success: function(sid){
                         binder.initAdmin(sid);
+                        finalize();
                     },
                     error: function(){
                         $('#dialogResutMessage').text('invalid password.');
@@ -123,7 +124,7 @@ MarkdownBinder.prototype = {
         // auto login or login dialog
         else if (binder.mode == 'login') {
             if ($.cookie('sid')) {
-                binder.autoLogin(binder.dispLoginDialog);
+                binder.autoLogin(function(){binder.dispLoginDialog()});
             } else {
                 binder.dispLoginDialog();
             }
