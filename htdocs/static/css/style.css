@@ -189,12 +189,59 @@ article{
 	position: relative;
     margin-left:20px;
 }
-.pagemenu {
+#pagemenu {
 	position: absolute;
 	top: 0;
 	right: 0;
 	text-align: right;
 }
+#editmenu {
+	display: none;
+}
+#sidebar {
+    position: relative;
+}
+#sidebar dt a {
+    font-weight: normal;
+}
+#sidemenu {
+    position: absolute;
+    top: 20px;
+    right: 0;
+}
+.dialog {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    background-color: #ffffff;
+    padding: 20px;
+    border: 4px solid black;
+    z-index: 99999;
+    margin: 0;
+    opacity: 1;
+}
+.dialogOverlay {
+    position: absolute;
+    z-index: 99998;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    background-color: #000000;
+    opacity: .8;
+}
+.dialogMessage {
+    
+}
+.dialogButtons {
+    text-align: center;
+}
+.dialogButtons input {
+    padding: 10px;
+}
+.dialogResutMessage {
+    color: red;
+}
+
 footer{
     text-align:center;
     padding:20px 0;

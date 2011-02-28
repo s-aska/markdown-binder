@@ -286,7 +286,14 @@ my $app = sub {
     
     my $html = $cache_file->slurp;
     
-    return $render->($req, 'index.html', { files => \@files, content => $html, login => $req->param('login') || 0, set_password => not length $password });
+    return
+        $render->($req, 'index.html', {
+            files   => \@files,
+            content => $html,
+            path    => $req->path,
+            login   => $req->param('login') || 0,
+            install => not length $password
+        });
 };
 
 builder {
