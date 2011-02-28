@@ -4,6 +4,7 @@
 <link rel="stylesheet" type="text/css" href="/static/css/style.css" media="all" />
 <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Crimson+Text">
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"></script>
+<script type="text/javascript" src="/static/js/jquery.cookie.js"></script>
 <script>
 var pushed = false;
 var logined = false;
@@ -61,7 +62,7 @@ function init_content(file) {
     });
     
     // show pagemenu
-    if (file) {
+    if (file && file.length > 0) {
         pagemenu(file);
     }
 }
@@ -89,7 +90,7 @@ function init_sidebar(html) {
                         url: file,
                         type: 'POST',
                         cache: false,
-                        data: { rename_dir: value, password: logined },
+                        data: { rename_dir: value, sid: logined },
                         success: function(html){
                             init_sidebar(html);
                             finalize();
@@ -111,7 +112,7 @@ function init_sidebar(html) {
                         url: file,
                         type: 'POST',
                         cache: false,
-                        data: { delete_dir: 1, password: logined },
+                        data: { delete_dir: 1, sid: logined },
                         success: function(html){
                             init_sidebar(html);
                             finalize();
@@ -182,8 +183,29 @@ function pagemenu(file) {
     }
     $('#content').append(pagemenu);
 }
-
-
+function loginDialog() {
+    dialog('please input password', 'password', '', function(value, finalize){
+        $.ajax({
+            url: '/',
+            type: 'POST',
+            cache: false,
+            data: { login_check: 1, password: value },
+            success: function(html){
+                logined = html;
+                $.cookie('sid', html);
+                var file = location.pathname;
+                var source_url = file.length > 1 ? file : '/TOP';
+                adminmenu($('#pagemenu'), source_url);
+                $('#adminsidemenu').show();
+                init_sidebar();
+                finalize();
+            },
+            error: function(){
+                $('#dialogResutMessage').text('invalid password.');
+            }
+        });
+    });
+}
 
 $(document).ready(function() {
     if (history.pushState) {
@@ -203,7 +225,8 @@ $(document).ready(function() {
             cache: false,
             data: { password: '', new_password: value },
             success: function(html){
-                logined = value;
+                logined = html;
+                $.cookie('sid', html);
                 var file = location.pathname;
                 var source_url = file.length > 1 ? file : '/TOP';
                 adminmenu($('#pagemenu'), source_url);
@@ -218,15 +241,15 @@ $(document).ready(function() {
     });
     [% ELSIF !login %]
     init_sidebar();
-    [% ELSE %]
-    dialog('please input password', 'password', '', function(value, finalize){
+    var sid = $.cookie('sid');
+    if (sid) {
         $.ajax({
             url: '/',
             type: 'POST',
             cache: false,
-            data: { login_check: 1, password: value },
+            data: { login_check: 1, sid: sid },
             success: function(html){
-                logined = value;
+                logined = sid; 
                 var file = location.pathname;
                 var source_url = file.length > 1 ? file : '/TOP';
                 adminmenu($('#pagemenu'), source_url);
@@ -235,10 +258,33 @@ $(document).ready(function() {
                 finalize();
             },
             error: function(){
-                $('#dialogResutMessage').text('invalid password.');
             }
         });
-    });
+    }
+    [% ELSE %]
+    var sid = $.cookie('sid');
+    if (sid) {
+        $.ajax({
+            url: '/',
+            type: 'POST',
+            cache: false,
+            data: { login_check: 1, sid: sid },
+            success: function(html){
+                logined = sid; 
+                var file = location.pathname;
+                var source_url = file.length > 1 ? file : '/TOP';
+                adminmenu($('#pagemenu'), source_url);
+                $('#adminsidemenu').show();
+                init_sidebar();
+                finalize();
+            },
+            error: function(){
+                loginDialog();
+            }
+        });
+    } else {
+        loginDialog();
+    }
     [% END %]
     /*
     $('#sidebar dl dl').each(function(){
@@ -360,7 +406,7 @@ function edit_file(source_url) {
         $.ajax({
             url: '/',
             type: 'POST',
-            data: { password: logined, content: editor.val() },
+            data: { sid: logined, content: editor.val() },
             success: function(html){
                 loading.hide();
                 preview.html(html);
@@ -394,7 +440,7 @@ function edit_file(source_url) {
         $.ajax({
             url: source_url,
             type: 'POST',
-            data: { save: 1, password: logined, content: $('#editor').val() },
+            data: { save: 1, sid: logined, content: $('#editor').val() },
             success: function(html){
                 doc.html(html);
                 doc.show();
@@ -454,7 +500,7 @@ function newpageDialog() {
             url: value,
             type: 'POST',
             cache: false,
-            data: { create: 1, password: logined },
+            data: { create: 1, sid: logined },
             success: function(html){
                 init_sidebar(html);
                 finalize();
@@ -471,7 +517,7 @@ function rebuildDialog() {
             url: '/',
             type: 'POST',
             cache: false,
-            data: { rebuild: 1, password: logined },
+            data: { rebuild: 1, sid: logined },
             success: function(html){
                 init_sidebar(html);
                 finalize();
@@ -498,7 +544,7 @@ function adminmenu(pagemenu, source_url) {
                 url: source_url,
                 type: 'POST',
                 cache: false,
-                data: { copy: value, password: logined },
+                data: { copy: value, sid: logined },
                 success: function(html){
                     init_sidebar(html);
                     finalize();
@@ -521,7 +567,7 @@ function adminmenu(pagemenu, source_url) {
                 url: source_url,
                 type: 'POST',
                 cache: false,
-                data: { rename: value, password: logined },
+                data: { rename: value, sid: logined },
                 success: function(html){
                     init_sidebar(html);
                     finalize();
@@ -544,7 +590,7 @@ function adminmenu(pagemenu, source_url) {
                 url: source_url,
                 type: 'POST',
                 cache: false,
-                data: { delete: 1, password: logined },
+                data: { delete: 1, sid: logined },
                 success: function(html){
                     $('dd').each(function(){
                         var dd = $(this);

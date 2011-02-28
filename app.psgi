@@ -6,6 +6,8 @@ use Plack::Builder;
 use Plack::Request;
 use Text::Markdown;
 use Text::Xslate;
+use Digest::MD5;
+use Time::HiRes;
 
 my $doc_dir   = dir($ENV{'MARKDOWN_BINDER_DOC'} || './doc/')->absolute;
 my $cache_dir = dir($ENV{'MARKDOWN_BINDER_CACHE'} || './cache/')->absolute;
@@ -82,21 +84,34 @@ $rebuild->();
 
 my $password = $pass_file->slurp if -f $pass_file;
 my $bad_ip = {};
+my $sessions = {};
+my $gen_id = sub {
+    my $sid_length = 64;
+    my $unique = ( [] . rand() );
+    my $id = substr( Digest::MD5::md5_hex( Time::HiRes::gettimeofday() . $unique ), 0, $sid_length );
+    $sessions->{ $id }++;
+    return $id;
+};
 my $valid_password = sub {
     my $req = shift;
     if (!-f $pass_file) {
         warn 'unset password.';
+        return $gen_id->();
     } elsif ($bad_ip->{ $req->address } > 5) {
         warn 'attack ip ' . $req->address;
-        return 1;
+        return ;
+    } elsif (exists $sessions->{ $req->param('sid') }) {
+        warn 'logined';
     } elsif ($password ne crypt($req->param('password'), $password)) {
-        warn 'invalid password ';
+        warn 'invalid password';
         $bad_ip->{ $req->address }++;
-        return 1;
+        return ;
     } else {
+        warn 'login';
         delete $bad_ip->{ $req->address };
+        return $gen_id->();
     }
-    return ;
+    return 1;
 };
 
 my $res_200 = [ 200, [ 'Content-Type' => 'text/html' ], [ '' ] ];
@@ -140,7 +155,8 @@ my $app = sub {
     
     if ($req->method eq 'POST') {
         
-        if ($valid_password->($req)) {
+        my $login = $valid_password->($req);
+        if (!$login) {
             return $res_403;
         }
         
@@ -153,12 +169,12 @@ my $app = sub {
             $fh->print($password);
             $fh->close;
             chmod 0600, $pass_file;
-            return $res_200;
+            return [ 200, [ 'Content-Type' => 'text/html' ], [ $login ] ];
         }
         
         # login
         elsif ($req->param('login_check')) {
-            return $res_200;
+            return [ 200, [ 'Content-Type' => 'text/html' ], [ $login ] ];
         }
         
         # rebuild
