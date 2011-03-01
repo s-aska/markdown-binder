@@ -272,6 +272,7 @@ MarkdownBinder.prototype = {
 
         var editor = $(document.createElement('textarea'));
         editor.attr('id', 'editor');
+		editor.tabby({tabString: '    '});
 
         var preview = $(document.createElement('div'));
         preview.attr('id', 'preview');
