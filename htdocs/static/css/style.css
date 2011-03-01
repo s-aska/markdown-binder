@@ -236,7 +236,7 @@ article{
     text-align: center;
 }
 .dialogButtons input {
-    padding: 10px;
+    /* padding: 10px; */
 }
 .dialogResutMessage {
     color: red;

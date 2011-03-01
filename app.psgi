@@ -190,6 +190,8 @@ my $app = sub {
             }
             $text_file->dir->mkpath unless -d $text_file->dir;
             $text_file->openw->close;
+            $cache_file->dir->mkpath unless -d $cache_file->dir;
+            $cache_file->openw->close;
             $rebuild->();
             return $render_sidebar->($req);
         }

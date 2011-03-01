@@ -597,7 +597,7 @@ MarkdownBinder.prototype = {
         });
     },
     
-    dialog: function(message, inputType, inputValue, callback){
+    dialog: function(messageText, inputType, inputValue, callback){
 
         var overlay = $(document.createElement('div'));
         overlay.attr('class', 'dialogOverlay');
@@ -612,15 +612,18 @@ MarkdownBinder.prototype = {
             dialog.remove();
         };
 
-        var messageElement = $(document.createElement('div'));
-        messageElement.attr('class', 'dialogMessage');
-        messageElement.text(message);
-        dialog.append(messageElement);
+        var message = $(document.createElement('div'));
+        message.attr('class', 'dialogMessage');
+        message.text(messageText);
+        dialog.append(message);
+
+        var inputArea = $(document.createElement('div'));
+        dialog.append(inputArea);
 
         var input = $(document.createElement('input'));
         input.attr('type', inputType);
         input.val(inputValue);
-        dialog.append(input);
+        inputArea.append(input);
 
         var buttons = $(document.createElement('div'));
         dialog.append(buttons);
@@ -647,6 +650,9 @@ MarkdownBinder.prototype = {
         dialog.append(result);
 
         var body = $('body');
+		if (jQuery.browser.msie) {
+			overlay.css('opacity', '.4')
+		}
         body.append(overlay);
         body.append(dialog);
 
