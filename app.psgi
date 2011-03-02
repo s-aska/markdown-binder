@@ -305,5 +305,7 @@ builder {
         path => qr!\.html$!, root => $cache_dir;
     enable 'Static',
         path => qr!\.txt$!, root => $doc_dir;
+    enable 'XForwardedFor',
+        trust => [qw(127.0.0.1/8)];
     $app;
 };
