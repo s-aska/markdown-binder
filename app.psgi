@@ -188,10 +188,16 @@ my $app = sub {
             if (-f $text_file) {
                 return $res_403;
             }
+            my $text = '# ' . file($file)->basename;
             $text_file->dir->mkpath unless -d $text_file->dir;
-            $text_file->openw->close;
+            my $fh = $text_file->openw;
+            $fh->print($text);
+            $fh->close;
             $cache_file->dir->mkpath unless -d $cache_file->dir;
-            $cache_file->openw->close;
+            my $cache = $cache_file->openw;
+            my $html = Text::Markdown->new->markdown($text);
+            $cache->print($html);
+            $cache->close;
             $rebuild->();
             return $render_sidebar->($req);
         }
