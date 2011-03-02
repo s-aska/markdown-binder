@@ -57,10 +57,12 @@ body {text-align:center;}
 </nav>
 <article>
 <div id="content">
-<div id="document">[% content | mark_raw %]</div>
-<div id="pagemenu">
+<div id="page">[% content | mark_raw %]</div>
+<div id="pagelink">
 <a href="[% path %]" id="permalink">permalink</a> | 
 <a href="[% path %].txt" id="source" target="_blank">source</a>
+<!-- <iframe id="likebutton" src="" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:80px; height:21px;" allowTransparency="true"></iframe>
+<a id="tweetbutton" href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="su_aska" data-lang="ja">Tweet</a><script id="tweetcount" type="text/javascript" src="http://platform.twitter.com/widgets.js"></script> -->
 </div>
 </div>
 </article>

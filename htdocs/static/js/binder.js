@@ -45,11 +45,11 @@ MarkdownBinder.prototype = {
                 binder.gone = true;
                 binder.initDocument(html);
                 binder.path = path;
-                binder.initPagemenu();
+                binder.initPagelink();
             },
             error: function(XMLHttpRequest, status, errorThrown){
-                $('#document').html(status + ': ' + errorThrown);
-                $('#pagemenu').hide();
+                $('#page').html(status + ': ' + errorThrown);
+                $('#pagelink').hide();
             }
         });
     },
@@ -93,7 +93,7 @@ MarkdownBinder.prototype = {
         // init 
         binder.path = location.pathname;
         binder.initSidebar();
-        binder.initPagemenu();
+        binder.initPagelink();
         binder.initDocument();
         binder.initHeight();
         binder.initLogin();
@@ -174,9 +174,9 @@ MarkdownBinder.prototype = {
         $('#adminsidemenu').show();
 
         // make admin page menu
-        var doc = $('#document');
+        var page = $('#page');
 
-        var pagemenu = $('#pagemenu');
+        var pagelink = $('#pagelink');
 
         var editpage = $(document.createElement('a'));
         editpage.attr('href', '#');
@@ -233,8 +233,8 @@ MarkdownBinder.prototype = {
         deletepage.text('delete');
         deletepage.bind('click', function(){
             binder.dialog('delete this page now ?', 'hidden', '', function(value, finalize){
-                $('#document').html('deleted this page.');
-                $('#pagemenu').hide();
+                $('#page').html('deleted this page.');
+                $('#pagelink').hide();
                 binder.initHeight();
                 $.ajax({
                     url: binder.path,
@@ -259,20 +259,20 @@ MarkdownBinder.prototype = {
             return false;
         });
 
-        var adminmenu = $(document.createElement('div'));
-        adminmenu.attr('id', 'adminmenu');
-        adminmenu.append(editpage);
-        adminmenu.append(document.createTextNode(' | '));
-        adminmenu.append(copypage);
-        adminmenu.append(document.createTextNode(' | '));
-        adminmenu.append(renamepage);
-        adminmenu.append(document.createTextNode(' | '));
-        adminmenu.append(deletepage);
-        pagemenu.append(adminmenu);
+        var pagemenu = $(document.createElement('div'));
+        pagemenu.attr('id', 'pagemenu');
+        pagemenu.append(editpage);
+        pagemenu.append(document.createTextNode(' | '));
+        pagemenu.append(copypage);
+        pagemenu.append(document.createTextNode(' | '));
+        pagemenu.append(renamepage);
+        pagemenu.append(document.createTextNode(' | '));
+        pagemenu.append(deletepage);
+        pagelink.append(pagemenu);
 
         var editor = $(document.createElement('textarea'));
         editor.attr('id', 'editor');
-		editor.tabby({tabString: '    '});
+        editor.tabby({tabString: '    '});
 
         var preview = $(document.createElement('div'));
         preview.attr('id', 'preview');
@@ -281,35 +281,42 @@ MarkdownBinder.prototype = {
         loading.attr('id', 'loading');
         loading.text('loading...');
 
-        var edit_button = $(document.createElement('a'));
-        edit_button.attr('href', '#');
-        edit_button.text('edit');
-        edit_button.bind('click', function(){
-            editor.show();
-            preview.hide();
-            return false;
-        });
+        // var edit_button = $(document.createElement('a'));
+        // edit_button.attr('href', '#');
+        // edit_button.text('edit');
+        // edit_button.bind('click', function(){
+        //     editor.show();
+        //     preview.hide();
+        //     return false;
+        // });
 
         var preview_button = $(document.createElement('a'));
         preview_button.attr('href', '#');
         preview_button.text('preview');
         preview_button.bind('click', function(){
-            loading.text('processing...');
-            loading.show();
-            editor.hide();
-            $.ajax({
-                url: '/',
-                type: 'POST',
-                data: { sid: binder.sid, content: editor.val() },
-                success: function(html){
-                    loading.hide();
-                    preview.html(html);
-                    preview.show();
-                },
-                error: function(){
-                    loading.text('auth error.');
-                }
-            });
+            if (preview_button.text() == 'preview') {
+                loading.text('processing...');
+                loading.show();
+                editor.hide();
+                $.ajax({
+                    url: '/',
+                    type: 'POST',
+                    data: { sid: binder.sid, content: editor.val() },
+                    success: function(html){
+                        loading.hide();
+                        preview.html(html);
+                        preview.show();
+                        preview_button.text('edit');
+                    },
+                    error: function(){
+                        loading.text('auth error.');
+                    }
+                });
+            } else {
+                editor.show();
+                preview.hide();
+                preview_button.text('preview');
+            }
             return false;
         });
 
@@ -320,8 +327,8 @@ MarkdownBinder.prototype = {
             editor.hide();
             editmenu.hide();
             preview.hide();
-            doc.show();
-            adminmenu.show();
+            page.show();
+            pagemenu.show();
             return false;
         });
 
@@ -336,9 +343,9 @@ MarkdownBinder.prototype = {
                 type: 'POST',
                 data: { save: 1, sid: binder.sid, content: $('#editor').val() },
                 success: function(html){
-                    doc.show();
+                    page.show();
                     binder.initDocument(html);
-                    adminmenu.show();
+                    pagemenu.show();
                     loading.hide();
                     editor.hide();
                     editmenu.hide();
@@ -354,8 +361,8 @@ MarkdownBinder.prototype = {
         var editmenu = $(document.createElement('div'));
         editmenu.attr('id', 'editmenu');
         editmenu.attr('style', 'margin-bottom: 10px;');
-        editmenu.append(edit_button);
-        editmenu.append(document.createTextNode(' | '));
+        // editmenu.append(edit_button);
+        // editmenu.append(document.createTextNode(' | '));
         editmenu.append(preview_button);
         editmenu.append(document.createTextNode(' | '));
         editmenu.append(discard_button);
@@ -372,33 +379,41 @@ MarkdownBinder.prototype = {
     },
 
     initHeight: function(){
-        $('#document').removeAttr('style');
+        $('#page').removeAttr('style');
         $('#sidebar').removeAttr('style');
         var sidebar_height = $('#sidebar').height();
-        var document_height = $('#document').height();
+        var document_height = $('#page').height();
         if (sidebar_height > document_height) {
-            $('#document').height(sidebar_height);
+            $('#page').height(sidebar_height);
         } else {
             $('#sidebar').height(document_height);
         }
     },
 
-    initPagemenu: function() {
+    initPagelink: function() {
         var binder = this;
-        $('#pagemenu').show();
+        $('#pagelink').show();
         var permalink = $('#permalink');
         permalink.attr('href', binder.path);
         var source = $('#source');
         source.attr('href', binder.source());
+        // var date = new Date();
+        // var url = location.protocol + '//' + location.host + location.pathname;
+        // var encodeUrl = encodeURIComponent(url);
+        // var href = 'http://www.facebook.com/plugins/like.php?layout=button_count&show_faces=false&width=80&action=like&colorscheme=light&height=21&href=' + encodeUrl;
+        // $('#likebutton').attr('src', href);
+        // $('#tweetbutton').data('url', location.protocol + '//' + location.host + location.pathname);
+        // $('#tweetcount').attr('src', 'http://platform.twitter.com/widgets.js?' + date.getTime());
+
     },
 
     initDocument: function(html){
         var binder = this;
         if (html) {
-            $('#document').html(html);
+            $('#page').html(html);
             binder.initHeight();
         }
-        $('#document').find('a').each(function(){
+        $('#page').find('a').each(function(){
             if ($(this).attr('href').match(/^https?:/)) {
                 $(this).attr('target', '_blank');
             } else {
@@ -500,14 +515,14 @@ MarkdownBinder.prototype = {
 
     openEditor: function(){
         var binder = this;
-        var doc = $('#document');
+        var page = $('#page');
         var editor = $('#editor');
         var loading = $('#loading');
-        var width = doc.width();
-        var height = doc.height();
+        var width = page.width();
+        var height = page.height();
         if (height < 400) { height = 400 };
-        doc.hide();
-        $('#adminmenu').hide();
+        page.hide();
+        $('#pagemenu').hide();
         $('#editmenu').show();
         loading.show();
         loading.text('loading...');
@@ -528,8 +543,8 @@ MarkdownBinder.prototype = {
     closeEditor: function(){
         var binder = this;
         if (binder.editing) {
-            $('#document').show();
-            $('#adminmenu').show();
+            $('#page').show();
+            $('#pagemenu').show();
             $('#editmenu').hide();
             $('#editor').hide();
             $('#loading').hide();
@@ -651,9 +666,9 @@ MarkdownBinder.prototype = {
         dialog.append(result);
 
         var body = $('body');
-		if (jQuery.browser.msie) {
-			overlay.css('opacity', '.4')
-		}
+        if (jQuery.browser.msie) {
+            overlay.css('opacity', '.4')
+        }
         body.append(overlay);
         body.append(dialog);
 
