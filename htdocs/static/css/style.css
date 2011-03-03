@@ -157,14 +157,19 @@ body {
 nav{
     padding:20px 0;
     width:250px;
-    float:left;
-    
     height:auto;
+    float:left;
+    position: relative;
 }
 
 nav dt span{
     font-size:14px;
     font-weight:bold;
+    line-height: 150%;
+}
+
+nav dt input {
+    margin: 0 2px;
 }
 
 nav dl dl{
@@ -178,6 +183,18 @@ nav dd{
     padding-right:10px;
 }
 
+nav dt, nav dl{
+    letter-spacing: 1px;
+    line-height: 150%;
+}
+
+#sidemenu {
+    position: absolute;
+    top: 20px;
+    right: 0;
+    text-align: right;
+}
+
 article{
     padding:20px 0;
     width:725px;
@@ -189,26 +206,116 @@ article{
 	position: relative;
     margin-left:20px;
 }
-#pagelink {
+
+#pagelink{
 	position: absolute;
 	top: 0;
 	right: 0;
 	text-align: right;
 }
-#editmenu {
+
+#editmenu{
 	display: none;
 }
-#sidebar {
-    position: relative;
+
+
+
+footer{
+    text-align:center;
+    padding:20px 0;
+    border-top: 1px dotted #000;
 }
-#sidebar dt a {
+
+h1#siteTitle{
+    padding-bottom:20px;
+    border-bottom: 1px dotted #000;
+    font-size: 30px;
     font-weight: normal;
+    font-family:Crimson Text;
+    text-align:center;
+    margin-bottom:0px;
+    
 }
-#sidemenu {
-    position: absolute;
-    top: 20px;
-    right: 0;
+    
+#content h1{
+    font-size:24px;
+    font-weight:bold;
+    margin-bottom:20px;
 }
+
+h2{
+    font-size:18px;
+    font-weight:bold;
+    margin-bottom:20px;
+    padding-bottom:5px;
+    border-bottom: 1px dotted #000;
+}
+h3{
+    font-size:14px;
+    font-weight:bold;
+    margin-bottom:4px;
+}
+
+em{
+    font-style:normal;
+    font-weight:bold;
+}
+
+strong{
+    color: #BF0000;
+}
+
+p{
+    margin-bottom:20px;
+    letter-spacing: 1px;
+    line-height: 220%;
+}
+
+ul,ol{
+    margin-left:20px;
+    margin-bottom:16px;
+}
+ul ul,ol ol{
+    margin-bottom:0;
+}
+ul p,ol p{
+    margin-bottom:12px;
+    line-height: 1;
+}
+li{
+    letter-spacing: 1px;
+    line-height: 190%;
+}
+
+blockquote{
+    margin: 10px 10px 20px 10px;
+    padding-left: 10px;
+    border-left: 1px solid  #999999;
+    background-color:;
+}
+blockquote p{
+    margin-bottom: 0;
+}
+code{
+    padding: 2px;
+    border-bottom: 1px dotted #999999;
+    font-family: Courier;
+}
+pre{
+    margin: 10px 10px 20px 10px;
+    padding: 10px;
+    border: 1px solid  #bbb;
+    background-color: #eee;
+}
+pre code{
+    padding: 0;
+    border-bottom: none;
+}
+
+
+
+/* system */
+
 .dialog {
     position: absolute;
     top: 50%;
@@ -229,98 +336,6 @@ article{
     background-color: #000000;
     opacity: .8;
 }
-.dialogMessage {
-    
-}
-.dialogButtons {
-    text-align: center;
-}
-.dialogButtons input {
-    /* padding: 10px; */
-}
 .dialogResutMessage {
     color: red;
-}
-
-footer{
-    text-align:center;
-    padding:20px 0;
-    border-top: 1px dotted #000;
-}
-
-h1#siteTitle {
-    padding-bottom:20px;
-    border-bottom: 1px dotted #000;
-    font-size: 30px;
-    font-weight: normal;
-    font-family:Crimson Text;
-    text-align:center;
-    margin-bottom:0px;
-    
-}
-    
-#content h1 {
-    font-size:24px;
-    font-weight:bold;
-    margin-bottom:20px;
-}
-
-h2 {
-    font-size:18px;
-    font-weight:bold;
-    margin-bottom:20px;
-    padding-bottom:5px;
-    border-bottom: 1px dotted #000;
-}
-h3 {
-    font-size:14px;
-    font-weight:bold;
-    margin-bottom:20px;
-}
-pre {
-    margin: 10px 10px 20px 10px;
-    padding: 10px;
-    border: 1px solid  #999999;
-    background-color: #eeeeee;
-}
-
-em {
-    font-style:normal;
-    font-weight:bold;
-}
-
-strong {
-    color: #BF0000;
-}
-
-blockquote {
-    margin: 10px 10px 20px 10px;
-    padding: 10px;
-    border-left: 1px solid  #999999;
-    background-color:;
-}
-
-p{
-    margin-bottom:20px;
-}
-
-ul,ol{
-    margin-left:20px;
-    margin-bottom:16px;
-}
-
-ul p,ol p{
-    margin-bottom:4px;
-}
-ul ul ul ul,ol ol ol ol{
-    margin-bottom:0;
-}
-
-code {
-    padding: 2px;
-    border-bottom: 1px dotted #999999;
-}
-pre code {
-    padding: 0;
-    border-bottom: none;
 }

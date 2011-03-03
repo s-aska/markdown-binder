@@ -178,14 +178,14 @@ MarkdownBinder.prototype = {
 
         var pagelink = $('#pagelink');
 
-        var editpage = $(document.createElement('a'));
-        editpage.attr('href', '#');
-        editpage.text('edit');
+        var editpage = $(document.createElement('input'));
+        editpage.attr('type', 'button');
+        editpage.val('edit');
         editpage.bind('click', function(){binder.openEditor(); return false;});
 
-        var copypage = $(document.createElement('a'));
-        copypage.attr('href', '#');
-        copypage.text('copy');
+        var copypage = $(document.createElement('input'));
+        copypage.attr('type', 'button');
+        copypage.val('copy');
         copypage.bind('click', function(){
             binder.dialog('copy page', 'text', binder.path, function(value, finalize){
                 $.ajax({
@@ -205,9 +205,9 @@ MarkdownBinder.prototype = {
             return false;
         });
 
-        var renamepage = $(document.createElement('a'));
-        renamepage.attr('href', '#');
-        renamepage.text('rename');
+        var renamepage = $(document.createElement('input'));
+        renamepage.attr('type', 'button');
+        renamepage.val('rename');
         renamepage.bind('click', function(){
             binder.dialog('rename page', 'text', binder.path, function(value, finalize){
                 $.ajax({
@@ -228,9 +228,9 @@ MarkdownBinder.prototype = {
             return false;
         });
 
-        var deletepage = $(document.createElement('a'));
-        deletepage.attr('href', '#');
-        deletepage.text('delete');
+        var deletepage = $(document.createElement('input'));
+        deletepage.attr('type', 'button');
+        deletepage.val('delete');
         deletepage.bind('click', function(){
             binder.dialog('delete this page now ?', 'hidden', '', function(value, finalize){
                 $('#page').html('deleted this page.');
@@ -262,11 +262,11 @@ MarkdownBinder.prototype = {
         var pagemenu = $(document.createElement('div'));
         pagemenu.attr('id', 'pagemenu');
         pagemenu.append(editpage);
-        pagemenu.append(document.createTextNode(' | '));
+        pagemenu.append(document.createTextNode(' '));
         pagemenu.append(copypage);
-        pagemenu.append(document.createTextNode(' | '));
+        pagemenu.append(document.createTextNode(' '));
         pagemenu.append(renamepage);
-        pagemenu.append(document.createTextNode(' | '));
+        pagemenu.append(document.createTextNode(' '));
         pagemenu.append(deletepage);
         pagelink.append(pagemenu);
 
@@ -281,20 +281,12 @@ MarkdownBinder.prototype = {
         loading.attr('id', 'loading');
         loading.text('loading...');
 
-        // var edit_button = $(document.createElement('a'));
-        // edit_button.attr('href', '#');
-        // edit_button.text('edit');
-        // edit_button.bind('click', function(){
-        //     editor.show();
-        //     preview.hide();
-        //     return false;
-        // });
-
-        var preview_button = $(document.createElement('a'));
-        preview_button.attr('href', '#');
-        preview_button.text('preview');
+        var preview_button = $(document.createElement('input'));
+        preview_button.attr('id', 'preview_button');
+        preview_button.attr('type', 'button');
+        preview_button.val('preview');
         preview_button.bind('click', function(){
-            if (preview_button.text() == 'preview') {
+            if (preview_button.val() == 'preview') {
                 loading.text('processing...');
                 loading.show();
                 editor.hide();
@@ -306,7 +298,7 @@ MarkdownBinder.prototype = {
                         loading.hide();
                         preview.html(html);
                         preview.show();
-                        preview_button.text('edit');
+                        preview_button.val('edit');
                     },
                     error: function(){
                         loading.text('auth error.');
@@ -315,14 +307,14 @@ MarkdownBinder.prototype = {
             } else {
                 editor.show();
                 preview.hide();
-                preview_button.text('preview');
+                preview_button.val('preview');
             }
             return false;
         });
 
-        var discard_button = $(document.createElement('a'));
-        discard_button.attr('href', '#');
-        discard_button.text('discard');
+        var discard_button = $(document.createElement('input'));
+        discard_button.attr('type', 'button');
+        discard_button.val('discard');
         discard_button.bind('click', function(){
             editor.hide();
             editmenu.hide();
@@ -332,9 +324,9 @@ MarkdownBinder.prototype = {
             return false;
         });
 
-        var save_button = $(document.createElement('a'));
-        save_button.attr('href', '#');
-        save_button.text('save');
+        var save_button = $(document.createElement('input'));
+        save_button.attr('type', 'button');
+        save_button.val('save');
         save_button.bind('click', function(){
             loading.text('saving...');
             loading.show();
@@ -361,12 +353,11 @@ MarkdownBinder.prototype = {
         var editmenu = $(document.createElement('div'));
         editmenu.attr('id', 'editmenu');
         editmenu.attr('style', 'margin-bottom: 10px;');
-        // editmenu.append(edit_button);
-        // editmenu.append(document.createTextNode(' | '));
+        editmenu.append(document.createTextNode(' '));
         editmenu.append(preview_button);
-        editmenu.append(document.createTextNode(' | '));
+        editmenu.append(document.createTextNode(' '));
         editmenu.append(discard_button);
-        editmenu.append(document.createTextNode(' | '));
+        editmenu.append(document.createTextNode(' '));
         editmenu.append(save_button);
 
         loading.hide();
@@ -447,13 +438,26 @@ MarkdownBinder.prototype = {
             var dt = $(this).parent();
             var ele = dt.next();
             if (ele.length > 0 && ele.get(0).tagName.toLowerCase() == 'dl') {
-                ele.slideToggle('fast');
+                var display = ele.css('display');
+                if (display == "" || display == "none") {
+                    if (binder.sid) {
+                        dt.find('div').slideUp('fast', function(){
+                            ele.slideDown('fast');
+                        });
+                    } else {
+                        ele.slideDown('fast');
+                    }
+                } else {
+                    if (binder.sid) {
+                        ele.slideUp('fast', function(){
+                            dt.find('div').slideDown('fast');
+                        });
+                    } else {
+                        ele.slideUp('fast');
+                    }
+                }
             }
-            if (binder.sid) {
-                dt.find('a').each(function(){
-                    $(this).slideToggle('fast');
-                });
-            }
+            return false;
         });
     },
 
@@ -462,9 +466,9 @@ MarkdownBinder.prototype = {
         $('#pages').find('dt').each(function(){
             var dt = $(this);
             var file = dt.data('file');
-            var rename = $(document.createElement('a'));
-            rename.text('rename');
-            rename.attr('href', '#');
+            var rename = $(document.createElement('input'));
+            rename.val('rename');
+            rename.attr('type', 'button');
             rename.bind('click', function(){
                 binder.dialog('rename dir', 'text', file, function(value, finalize){
                     $.ajax({
@@ -483,10 +487,9 @@ MarkdownBinder.prototype = {
                 });
                 return false;
             });
-            rename.hide();
-            var del = $(document.createElement('a'));
-            del.text('delete');
-            del.attr('href', '#');
+            var del = $(document.createElement('input'));
+            del.val('delete');
+            del.attr('type', 'button');
             del.bind('click', function(){
                 binder.dialog('delete dir now ?', 'hidden', file, function(value, finalize){
                     $.ajax({
@@ -505,11 +508,12 @@ MarkdownBinder.prototype = {
                 });
                 return false;
             });
-            del.hide();
-            dt.append(document.createTextNode(' '));
-            dt.append(rename);
-            dt.append(document.createTextNode(' '));
-            dt.append(del);
+            var wraper = $(document.createElement('div'));
+            wraper.hide();
+            wraper.append(rename);
+            wraper.append(document.createTextNode(' '));
+            wraper.append(del);
+            dt.append(wraper);
         });
     },
 
@@ -535,6 +539,7 @@ MarkdownBinder.prototype = {
                 editor.width(width);
                 editor.height(height);
                 editor.show();
+                $('#preview_button').val('preview');
                 binder.editing = true;
             }
         });
