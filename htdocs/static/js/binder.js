@@ -210,41 +210,14 @@ MarkdownBinder.prototype = {
             binder.dispSyncDialog();
             return false;
         });
-        var hidetreemore = $(document.createElement('a'));
-        hidetreemore.text('tree menu hide');
-        hidetreemore.attr('href', '#');
-        hidetreemore.bind('click', function(){
-            siteMenu.hide();
-            $('#pages .more').hide();
-            $.cookie('hide-tree-menu', 1);
-            return false;
-        });
-        var dirtreemore = $(document.createElement('a'));
-        dirtreemore.text('tree menu dir only');
-        dirtreemore.attr('href', '#');
-        dirtreemore.bind('click', function(){
-            siteMenu.hide();
-            $('#pages dt .more').show();
-            $('#pages dd .more').hide();
-            $.cookie('hide-tree-menu', 2);
-            return false;
-        });
-        var showtreemore = $(document.createElement('a'));
-        showtreemore.text('tree menu show');
-        showtreemore.attr('href', '#');
-        showtreemore.bind('click', function(){
-            siteMenu.hide();
-            $('#pages .more').show();
-            $.cookie('hide-tree-menu', null);
-            return false;
-        });
         siteMenu.append(newpage);
         siteMenu.append(syncpage);
-        siteMenu.append(hidetreemore);
-        siteMenu.append(dirtreemore);
-        siteMenu.append(showtreemore);
         var siteMore = $(document.createElement('a'));
-        siteMore.text('more ▼');
+        siteMore.text('more ');
+        var allow = $(document.createElement('span'));
+        allow.attr('class', 'allow');
+        allow.text('▼');
+        siteMore.append(allow);
         siteMore.attr('class', 'more');
         siteMore.attr('href', '#');
         siteMore.attr('title', 'site menu');
@@ -401,7 +374,11 @@ MarkdownBinder.prototype = {
         });
 
         var more = $(document.createElement('a'));
-        more.text('more ▼');
+        more.text('more ');
+        var allow = $(document.createElement('span'));
+        allow.attr('class', 'allow');
+        allow.text('▼');
+        more.append(allow);
         more.attr('title', 'page menu');
         more.attr('class', 'more');
         more.attr('href', '#');
@@ -705,7 +682,7 @@ MarkdownBinder.prototype = {
             menu.text('▼');
             menu.attr('title', 'directory menu')
             menu.attr('href', '#');
-            menu.attr('class', 'more');
+            menu.attr('class', 'allow');
             menu.click(function(){
                 var dirMenu = $('#dirMenu');
                 dirMenu.data('file', dt.data('file'));
@@ -719,10 +696,6 @@ MarkdownBinder.prototype = {
             
             dt.append($(document.createTextNode(' ')));
             dt.append(menu);
-            
-            if ($.cookie('hide-tree-menu') && $.cookie('hide-tree-menu') == 1) {
-                menu.hide();
-            }
         });
         
         // 
@@ -732,7 +705,7 @@ MarkdownBinder.prototype = {
             more.text('▼');
             more.attr('title', 'page menu')
             more.attr('href', '#');
-            more.attr('class', 'more');
+            more.attr('class', 'allow');
             more.click(function(){
                 var pageMenu = $('#pagemenu');
                 pageMenu.data('file', dd.data('file'));
@@ -745,10 +718,6 @@ MarkdownBinder.prototype = {
             });
             dd.append($(document.createTextNode(' ')));
             dd.append(more);
-            
-            if ($.cookie('hide-tree-menu')) {
-                more.hide();
-            }
         });
         
         // $('#pages').find('dt').each(function(){

@@ -197,6 +197,14 @@ nav dt, nav dl{
 a.more {
     text-decoration: none;
 }
+.allow {
+    text-decoration: none;
+    font-size: 10px;
+    color: #acd2e8;
+}
+a.allow:hover {
+    text-decoration: none;
+}
 .contextMenu {
     position: absolute;
     background-color: #fff;
@@ -212,7 +220,7 @@ a.more {
     text-decoration: none;
 }
 .contextMenu a:hover {
-    background-color: #ffff99;
+    background-color: #ffffb2;
     text-decoration: none;
 }
 
