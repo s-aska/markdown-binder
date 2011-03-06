@@ -263,6 +263,7 @@ my $app = sub {
             my $src_dir = dir($doc_dir, $file);
             my $dest_dir = dir($doc_dir, $dest);
             my $cache_dest_dir = dir($cache_dir, $dest);
+            return $res_409 if $dest_dir=~/^$src_dir/;
             return $res_409 if -d $dest_dir;
             $dest_dir->parent->mkpath unless -d $dest_dir->parent;
             if (-d $src_dir) {

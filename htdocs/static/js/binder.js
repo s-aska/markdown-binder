@@ -31,17 +31,17 @@ MarkdownBinder.prototype = {
     },
 
     // navigation
-    go: function(path){
+    go: function(path, callback){
         if (history.pushState) {
             history.pushState(path, '', location.protocol + '//' + location.host + path);
         }
-        this.load(path);
         if (this.editing) {
             this.closeEditor();
         }
+        this.load(path, callback);
     },
 
-    load: function(path){
+    load: function(path, callback){
         var binder = this;
         var url = path;
         if (url == '/') {
@@ -60,6 +60,9 @@ MarkdownBinder.prototype = {
                 binder.dir = match[1];
                 binder.basename = match[2];
                 binder.initPagelink();
+                if (callback) {
+                    callback();
+                }
             },
             error: function(XMLHttpRequest, status, errorThrown){
                 $('#page').html(status + ': ' + errorThrown);
@@ -207,8 +210,39 @@ MarkdownBinder.prototype = {
             binder.dispSyncDialog();
             return false;
         });
+        var hidetreemore = $(document.createElement('a'));
+        hidetreemore.text('tree menu hide');
+        hidetreemore.attr('href', '#');
+        hidetreemore.bind('click', function(){
+            siteMenu.hide();
+            $('#pages .more').hide();
+            $.cookie('hide-tree-menu', 1);
+            return false;
+        });
+        var dirtreemore = $(document.createElement('a'));
+        dirtreemore.text('tree menu dir only');
+        dirtreemore.attr('href', '#');
+        dirtreemore.bind('click', function(){
+            siteMenu.hide();
+            $('#pages dt .more').show();
+            $('#pages dd .more').hide();
+            $.cookie('hide-tree-menu', 2);
+            return false;
+        });
+        var showtreemore = $(document.createElement('a'));
+        showtreemore.text('tree menu show');
+        showtreemore.attr('href', '#');
+        showtreemore.bind('click', function(){
+            siteMenu.hide();
+            $('#pages .more').show();
+            $.cookie('hide-tree-menu', null);
+            return false;
+        });
         siteMenu.append(newpage);
         siteMenu.append(syncpage);
+        siteMenu.append(hidetreemore);
+        siteMenu.append(dirtreemore);
+        siteMenu.append(showtreemore);
         var siteMore = $(document.createElement('a'));
         siteMore.text('more ▼');
         siteMore.attr('class', 'more');
@@ -242,7 +276,11 @@ MarkdownBinder.prototype = {
         editpage.attr('href', '#');
         editpage.bind('click', function(){
             pagemenu.hide();
-            binder.openEditor();
+            if (binder.path != pagemenu.data('file')) {
+                binder.go(pagemenu.data('file'), function(){binder.openEditor()});
+            } else {
+                binder.openEditor();
+            }
             return false;
         });
 
@@ -250,12 +288,12 @@ MarkdownBinder.prototype = {
         copypage.text('copy...');
         copypage.attr('href', '#');
         copypage.bind('click', function(){
-            binder.dialog('copy page', 'text', binder.path, function(value, finalize){
+            binder.dialog('copy page', 'text', pagemenu.data('basename'), function(dir, value, finalize){
                 $.ajax({
-                    url: binder.path,
+                    url: pagemenu.data('file'),
                     type: 'POST',
                     cache: false,
-                    data: { copy: value, sid: binder.sid },
+                    data: { copy: binder.catfile(dir, value), sid: binder.sid },
                     success: function(html){
                         binder.initSidebar(html);
                         finalize();
@@ -264,7 +302,7 @@ MarkdownBinder.prototype = {
                         $('#dialogResutMessage').text('error.');
                     }
                 });
-            });
+            }, true, pagemenu.data('dir'));
             return false;
         });
 
@@ -272,16 +310,17 @@ MarkdownBinder.prototype = {
         renamepage.text('rename...');
         renamepage.attr('href', '#');
         renamepage.bind('click', function(){
-            var basename = binder.path.match(/[^\/]*$/);
-            binder.dialog('rename page', 'text', basename, function(value, finalize){
+            binder.dialog('rename page', 'text', pagemenu.data('basename'), function(value, finalize){
                 $.ajax({
-                    url: binder.path,
+                    url: pagemenu.data('file'),
                     type: 'POST',
                     cache: false,
                     data: { rename: value, sid: binder.sid },
                     success: function(html){
                         binder.initSidebar(html);
-                        binder.go(binder.catfile(binder.dir, value));
+                        if (pagemenu.data('file') == binder.path) {
+                            binder.go(binder.catfile(binder.dir, value));
+                        }
                         finalize();
                     },
                     error: function(XMLHttpRequest, status, errorThrown){
@@ -296,22 +335,24 @@ MarkdownBinder.prototype = {
         movepage.text('move...');
         movepage.attr('href', '#');
         movepage.bind('click', function(){
-            binder.dialog('move page', 'hidden', binder.path, function(dir, value, finalize){
+            binder.dialog('move page', 'hidden', pagemenu.data('file'), function(dir, value, finalize){
                 $.ajax({
-                    url: binder.path,
+                    url: pagemenu.data('file'),
                     type: 'POST',
                     cache: false,
                     data: { move: dir, sid: binder.sid },
                     success: function(html){
                         binder.initSidebar(html);
-                        binder.go(binder.catfile(dir, binder.basename));
+                        if (pagemenu.data('file') == binder.path) {
+                            binder.go(binder.catfile(dir, binder.basename));
+                        }
                         finalize();
                     },
                     error: function(XMLHttpRequest, status, errorThrown){
                         $('#dialogResutMessage').text(status + ': ' + errorThrown);
                     }
                 });
-            }, true);
+            }, true, pagemenu.data('dir'));
             return false;
         });
         
@@ -319,12 +360,14 @@ MarkdownBinder.prototype = {
         deletepage.text('delete...');
         deletepage.attr('href', '#');
         deletepage.bind('click', function(){
-            binder.dialog('delete this page now ?', 'hidden', '', function(value, finalize){
-                $('#page').html('deleted this page.');
-                $('#pagelink').hide();
-                binder.initHeight();
+            binder.dialog('delete [ ' + pagemenu.data('file') + ' ] now ?', 'hidden', '', function(value, finalize){
+                if (pagemenu.data('file') == binder.path) {
+                    $('#page').html('deleted this page.');
+                    $('#pagelink').hide();
+                    binder.initHeight();
+                }
                 $.ajax({
-                    url: binder.path,
+                    url: pagemenu.data('file'),
                     type: 'POST',
                     cache: false,
                     data: { 'delete': 1, sid: binder.sid },
@@ -332,7 +375,7 @@ MarkdownBinder.prototype = {
                         $('dd').each(function(){
                             var dd = $(this);
                             var file = dd.data('file');
-                            if (file && binder.path == file) {
+                            if (file && pagemenu.data('file') == file) {
                                 dd.remove();
                             }
                         });
@@ -363,14 +406,17 @@ MarkdownBinder.prototype = {
         more.attr('class', 'more');
         more.attr('href', '#');
         more.click(function(){
+            pagemenu.data('file', binder.path);
+            pagemenu.data('basename', binder.basename);
+            pagemenu.data('dir', binder.dir);
+            pagemenu.css('top', more.offset().top + more.height() + 'px');
+            pagemenu.css('left', more.offset().left + 'px');
             pagemenu.show();
             return false;
         });
 
         pagelink.append(document.createTextNode(' | '));
         pagelink.append(more);
-        pagemenu.css('top', more.offset().top + more.height() + 'px');
-        pagemenu.css('left', more.offset().left + 'px');
         
         var editor = $(document.createElement('textarea'));
         editor.attr('id', 'editor');
@@ -497,6 +543,14 @@ MarkdownBinder.prototype = {
             return false;
         });
         
+        var newpage = $(document.createElement('a'));
+        newpage.text('new...');
+        newpage.attr('href', '#');
+        newpage.bind('click', function(e){
+            binder.dispNewpageDialog(dirMenu.data('file'));
+            return false;
+        });
+                
         var move = $(document.createElement('a'));
         move.text('move...');
         move.attr('href', '#');
@@ -516,7 +570,7 @@ MarkdownBinder.prototype = {
                         $('#dialogResutMessage').text(status + ': ' + errorThrown);
                     }
                 });
-            }, true);
+            }, true, dirMenu.data('dir'));
             return false;
         });
         
@@ -525,7 +579,7 @@ MarkdownBinder.prototype = {
         del.attr('href', '#');
         del.bind('click', function(){
             var file = dirMenu.data('file');
-            binder.dialog('delete dir now ?', 'hidden', file, function(value, finalize){
+            binder.dialog('delete [ ' + file + ' ] now ?', 'hidden', file, function(value, finalize){
                 $.ajax({
                     url: file,
                     type: 'POST',
@@ -543,6 +597,7 @@ MarkdownBinder.prototype = {
             return false;
         });
         
+        dirMenu.append(newpage);
         dirMenu.append(move);
         dirMenu.append(rename);
         dirMenu.append(del);
@@ -649,10 +704,13 @@ MarkdownBinder.prototype = {
             var menu = $(document.createElement('a'));
             menu.text('▼');
             menu.attr('title', 'directory menu')
+            menu.attr('href', '#');
+            menu.attr('class', 'more');
             menu.click(function(){
                 var dirMenu = $('#dirMenu');
                 dirMenu.data('file', dt.data('file'));
                 dirMenu.data('basename', dt.data('basename'));
+                dirMenu.data('dir', dt.data('dir'));
                 dirMenu.show();
                 dirMenu.css('top', menu.offset().top + menu.height() + 'px');
                 dirMenu.css('left', menu.offset().left + 'px');
@@ -661,21 +719,36 @@ MarkdownBinder.prototype = {
             
             dt.append($(document.createTextNode(' ')));
             dt.append(menu);
-            menu.hover(function(){
-                $(this).css('cursor','pointer');
-            },function(){
-                $(this).css('cursor','default');
-            });
             
-            // $(this).rightClick(function(){
-            //     var dirMenu = $('#dirMenu');
-            //     dirMenu.data('file', dt.data('file'));
-            //     dirMenu.data('basename', dt.data('basename'));
-            //     dirMenu.show();
-            //     dirMenu.css('top', dt.offset().top + dt.height() + 'px');
-            //     dirMenu.css('left', dt.offset().left + 'px');
-            //     return false;
-            // });
+            if ($.cookie('hide-tree-menu') && $.cookie('hide-tree-menu') == 1) {
+                menu.hide();
+            }
+        });
+        
+        // 
+        $('#pages dd').each(function(){
+            var dd = $(this);
+            var more = $(document.createElement('a'));
+            more.text('▼');
+            more.attr('title', 'page menu')
+            more.attr('href', '#');
+            more.attr('class', 'more');
+            more.click(function(){
+                var pageMenu = $('#pagemenu');
+                pageMenu.data('file', dd.data('file'));
+                pageMenu.data('basename', dd.data('basename'));
+                pageMenu.data('dir', dd.data('dir'));
+                pageMenu.css('top', more.offset().top + more.height() + 'px');
+                pageMenu.css('left', more.offset().left + 'px');
+                pageMenu.show();
+                return false;
+            });
+            dd.append($(document.createTextNode(' ')));
+            dd.append(more);
+            
+            if ($.cookie('hide-tree-menu')) {
+                more.hide();
+            }
         });
         
         // $('#pages').find('dt').each(function(){
@@ -807,16 +880,17 @@ MarkdownBinder.prototype = {
         });
     },
 
-    dispNewpageDialog: function(){
+    dispNewpageDialog: function(dir){
         var binder = this;
-        var url = binder.path;
-        url = url.replace(/\/[^\/]*$/, '');
+        var url;
+        if (dir) {
+            url = dir;
+        } else {
+            url = binder.path.replace(/\/[^\/]*$/, '');
+        }
         binder.dialog('new page ( hoge ) or new dir ( foo/ )', 'text', '', function(dir, value, finalize){
-            if (dir != '/') {
-                dir = dir + '/';
-            }
             $.ajax({
-                url: dir + value,
+                url: binder.catfile(dir, value),
                 type: 'POST',
                 cache: false,
                 data: { create: 1, sid: binder.sid },
