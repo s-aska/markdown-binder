@@ -194,6 +194,9 @@ nav dt, nav dl{
     right: 0;
     text-align: right;
 }
+a.more {
+    text-decoration: none;
+}
 .contextMenu {
     position: absolute;
     background-color: #fff;
@@ -205,9 +208,12 @@ nav dt, nav dl{
     display: block;
     border-bottom: 1px solid #68a9cf;
     padding: 4px;
+    font-size: 12px;
+    text-decoration: none;
 }
 .contextMenu a:hover {
-    background-color: yellow;
+    background-color: #ffff99;
+    text-decoration: none;
 }
 
 article{
@@ -294,7 +300,7 @@ ul ul,ol ol{
     margin-bottom:0;
 }
 ul p,ol p{
-    margin-bottom:12px;
+    margin-bottom:0;
     line-height: 1;
 }
 li{

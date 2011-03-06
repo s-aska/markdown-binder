@@ -190,8 +190,12 @@ my $app = sub {
             if (-f $text_file) {
                 return $res_403;
             }
-            my $text = '# ' . file($file)->basename;
             $text_file->dir->mkpath unless -d $text_file->dir;
+            unless (length file($file)->basename) {
+                $rebuild->();
+                return $render_sidebar->($req);
+            }
+            my $text = '# ' . file($file)->basename;
             my $fh = $text_file->openw;
             $fh->print($text);
             $fh->close;

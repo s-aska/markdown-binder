@@ -101,8 +101,6 @@ MarkdownBinder.prototype = {
 
         // bind
         $('#expand').bind('click', function(){binder.expand();return false;});
-        $('#new').bind('click', function(){binder.dispNewpageDialog();return false;});
-        $('#sync').bind('click', function(){binder.dispSyncDialog();return false;});
 
         // init 
         binder.path = location.pathname;
@@ -185,21 +183,72 @@ MarkdownBinder.prototype = {
         binder.initAdminSidebar();
 
         // show admin side menu
-        $('#adminsidemenu').show();
+        // $('#adminsidemenu').show();
+        // $('#new').bind('click', function(){return false;});
+        // $('#sync').bind('click', function(){return false;});
+
+        var sidemenu = $('#sidemenu');
+        var siteMenu = $(document.createElement('div'));
+        siteMenu.attr('id', 'sitemenu');
+        siteMenu.attr('class', 'contextMenu');
+        var newpage = $(document.createElement('a'));
+        newpage.text('new...');
+        newpage.attr('href', '#');
+        newpage.bind('click', function(){
+            siteMenu.hide();
+            binder.dispNewpageDialog();
+            return false;
+        });        
+        var syncpage = $(document.createElement('a'));
+        syncpage.text('sync...');
+        syncpage.attr('href', '#');
+        syncpage.bind('click', function(){
+            siteMenu.hide();
+            binder.dispSyncDialog();
+            return false;
+        });
+        siteMenu.append(newpage);
+        siteMenu.append(syncpage);
+        var siteMore = $(document.createElement('a'));
+        siteMore.text('more ▼');
+        siteMore.attr('class', 'more');
+        siteMore.attr('href', '#');
+        siteMore.attr('title', 'site menu');
+        siteMore.click(function(){
+            siteMenu.show();
+            return false;
+        });
+        siteMenu.hide();
+        $('body').append(siteMenu);
+        $('body').click(function(){
+            siteMenu.hide();
+        });
+        sidemenu.append(document.createTextNode(' | '));
+        sidemenu.append(siteMore);
+        siteMenu.css('top', siteMore.offset().top + siteMore.height() + 'px');
+        siteMenu.css('left', siteMore.offset().left + 'px');
 
         // make admin page menu
         var page = $('#page');
 
         var pagelink = $('#pagelink');
+        
+        var pagemenu = $(document.createElement('div'));
+        pagemenu.attr('id', 'pagemenu');
+        pagemenu.attr('class', 'contextMenu');
 
-        var editpage = $(document.createElement('input'));
-        editpage.attr('type', 'button');
-        editpage.val('edit');
-        editpage.bind('click', function(){binder.openEditor(); return false;});
+        var editpage = $(document.createElement('a'));
+        editpage.text('edit...');
+        editpage.attr('href', '#');
+        editpage.bind('click', function(){
+            pagemenu.hide();
+            binder.openEditor();
+            return false;
+        });
 
-        var copypage = $(document.createElement('input'));
-        copypage.attr('type', 'button');
-        copypage.val('copy');
+        var copypage = $(document.createElement('a'));
+        copypage.text('copy...');
+        copypage.attr('href', '#');
         copypage.bind('click', function(){
             binder.dialog('copy page', 'text', binder.path, function(value, finalize){
                 $.ajax({
@@ -219,9 +268,9 @@ MarkdownBinder.prototype = {
             return false;
         });
 
-        var renamepage = $(document.createElement('input'));
-        renamepage.attr('type', 'button');
-        renamepage.val('rename');
+        var renamepage = $(document.createElement('a'));
+        renamepage.text('rename...');
+        renamepage.attr('href', '#');
         renamepage.bind('click', function(){
             var basename = binder.path.match(/[^\/]*$/);
             binder.dialog('rename page', 'text', basename, function(value, finalize){
@@ -243,9 +292,9 @@ MarkdownBinder.prototype = {
             return false;
         });
 
-        var movepage = $(document.createElement('input'));
-        movepage.attr('type', 'button');
-        movepage.val('move');
+        var movepage = $(document.createElement('a'));
+        movepage.text('move...');
+        movepage.attr('href', '#');
         movepage.bind('click', function(){
             binder.dialog('move page', 'hidden', binder.path, function(dir, value, finalize){
                 $.ajax({
@@ -266,9 +315,9 @@ MarkdownBinder.prototype = {
             return false;
         });
         
-        var deletepage = $(document.createElement('input'));
-        deletepage.attr('type', 'button');
-        deletepage.val('delete');
+        var deletepage = $(document.createElement('a'));
+        deletepage.text('delete...');
+        deletepage.attr('href', '#');
         deletepage.bind('click', function(){
             binder.dialog('delete this page now ?', 'hidden', '', function(value, finalize){
                 $('#page').html('deleted this page.');
@@ -297,19 +346,32 @@ MarkdownBinder.prototype = {
             return false;
         });
 
-        var pagemenu = $(document.createElement('div'));
-        pagemenu.attr('id', 'pagemenu');
         pagemenu.append(editpage);
-        pagemenu.append(document.createTextNode(' '));
         pagemenu.append(copypage);
-        pagemenu.append(document.createTextNode(' '));
         pagemenu.append(renamepage);
-        pagemenu.append(document.createTextNode(' '));
         pagemenu.append(movepage);
-        pagemenu.append(document.createTextNode(' '));
         pagemenu.append(deletepage);
-        pagelink.append(pagemenu);
+        pagemenu.hide();
+        $('body').append(pagemenu);
+        $('body').click(function(){
+            pagemenu.hide();
+        });
 
+        var more = $(document.createElement('a'));
+        more.text('more ▼');
+        more.attr('title', 'page menu');
+        more.attr('class', 'more');
+        more.attr('href', '#');
+        more.click(function(){
+            pagemenu.show();
+            return false;
+        });
+
+        pagelink.append(document.createTextNode(' | '));
+        pagelink.append(more);
+        pagemenu.css('top', more.offset().top + more.height() + 'px');
+        pagemenu.css('left', more.offset().left + 'px');
+        
         var editor = $(document.createElement('textarea'));
         editor.attr('id', 'editor');
         editor.tabby({tabString: '    '});
@@ -360,7 +422,6 @@ MarkdownBinder.prototype = {
             editmenu.hide();
             preview.hide();
             page.show();
-            pagemenu.show();
             return false;
         });
 
@@ -377,7 +438,6 @@ MarkdownBinder.prototype = {
                 success: function(html){
                     page.show();
                     binder.initDocument(html);
-                    pagemenu.show();
                     loading.hide();
                     editor.hide();
                     editmenu.hide();
@@ -408,15 +468,17 @@ MarkdownBinder.prototype = {
         $('#content').append(editor);
         $('#content').append(preview);
         
-        // contextMenu
-        var contextMenu = $(document.createElement('div'));
-        contextMenu.attr('id', 'contextMenu');
-        contextMenu.attr('class', 'contextMenu');
+        // dirMenu
+        var dirMenu = $(document.createElement('div'));
+        dirMenu.attr('id', 'dirMenu');
+        dirMenu.attr('class', 'contextMenu');
+        
         var rename = $(document.createElement('a'));
-        rename.text('rename');
+        rename.text('rename...');
+        rename.attr('href', '#');
         rename.bind('click', function(e){
-            var file = contextMenu.data('file');
-            var basename = contextMenu.data('basename');
+            var file = dirMenu.data('file');
+            var basename = dirMenu.data('basename');
             binder.dialog('rename dir', 'text', basename, function(value, finalize){
                 $.ajax({
                     url: file,
@@ -434,10 +496,12 @@ MarkdownBinder.prototype = {
             });
             return false;
         });
+        
         var move = $(document.createElement('a'));
-        move.text('move');
+        move.text('move...');
+        move.attr('href', '#');
         move.bind('click', function(e){
-            var file = contextMenu.data('file');
+            var file = dirMenu.data('file');
             binder.dialog('move dir', 'hidden', file, function(dir, value, finalize){
                 $.ajax({
                     url: file,
@@ -455,10 +519,12 @@ MarkdownBinder.prototype = {
             }, true);
             return false;
         });
+        
         var del = $(document.createElement('a'));
-        del.text('delete');
+        del.text('delete...');
+        del.attr('href', '#');
         del.bind('click', function(){
-            var file = contextMenu.data('file');
+            var file = dirMenu.data('file');
             binder.dialog('delete dir now ?', 'hidden', file, function(value, finalize){
                 $.ajax({
                     url: file,
@@ -476,28 +542,19 @@ MarkdownBinder.prototype = {
             });
             return false;
         });
-        move.hover(function(){
-            $(this).css('background','#ffff99');
+        
+        dirMenu.append(move);
+        dirMenu.append(rename);
+        dirMenu.append(del);
+        dirMenu.hover(function(){
+            $(this).css('cursor','pointer');
         },function(){
-            $(this).css('background','');
+            $(this).css('cursor','default');
         });
-        rename.hover(function(){
-            $(this).css('background','#ffff99');
-        },function(){
-            $(this).css('background','');
-        });
-        del.hover(function(){
-            $(this).css('background','#ffff99');
-        },function(){
-            $(this).css('background','');
-        });
-        contextMenu.append(move);
-        contextMenu.append(rename);
-        contextMenu.append(del);
-        contextMenu.hide();
-        $('body').append(contextMenu);
+        dirMenu.hide();
+        $('body').append(dirMenu);
         $('body').bind('click', function(){
-            contextMenu.hide();
+            dirMenu.hide();
         });
     },
 
@@ -588,15 +645,37 @@ MarkdownBinder.prototype = {
         $('#pages dt span').each(function(){
             var dt = $(this).parent();
             binder.dirs.push(dt);
-            $(this).rightClick(function(){
-                var contextMenu = $('#contextMenu');
-                contextMenu.data('file', dt.data('file'));
-                contextMenu.data('basename', dt.data('basename'));
-                contextMenu.show();
-                contextMenu.css('top', dt.offset().top + dt.height() + 'px');
-                contextMenu.css('left', dt.offset().left + 'px');
+            
+            var menu = $(document.createElement('a'));
+            menu.text('▼');
+            menu.attr('title', 'directory menu')
+            menu.click(function(){
+                var dirMenu = $('#dirMenu');
+                dirMenu.data('file', dt.data('file'));
+                dirMenu.data('basename', dt.data('basename'));
+                dirMenu.show();
+                dirMenu.css('top', menu.offset().top + menu.height() + 'px');
+                dirMenu.css('left', menu.offset().left + 'px');
                 return false;
             });
+            
+            dt.append($(document.createTextNode(' ')));
+            dt.append(menu);
+            menu.hover(function(){
+                $(this).css('cursor','pointer');
+            },function(){
+                $(this).css('cursor','default');
+            });
+            
+            // $(this).rightClick(function(){
+            //     var dirMenu = $('#dirMenu');
+            //     dirMenu.data('file', dt.data('file'));
+            //     dirMenu.data('basename', dt.data('basename'));
+            //     dirMenu.show();
+            //     dirMenu.css('top', dt.offset().top + dt.height() + 'px');
+            //     dirMenu.css('left', dt.offset().left + 'px');
+            //     return false;
+            // });
         });
         
         // $('#pages').find('dt').each(function(){
@@ -678,7 +757,6 @@ MarkdownBinder.prototype = {
         var height = page.height();
         if (height < 400) { height = 400 };
         page.hide();
-        $('#pagemenu').hide();
         $('#editmenu').show();
         loading.show();
         loading.text('loading...');
@@ -701,7 +779,6 @@ MarkdownBinder.prototype = {
         var binder = this;
         if (binder.editing) {
             $('#page').show();
-            $('#pagemenu').show();
             $('#editmenu').hide();
             $('#editor').hide();
             $('#loading').hide();
@@ -734,7 +811,7 @@ MarkdownBinder.prototype = {
         var binder = this;
         var url = binder.path;
         url = url.replace(/\/[^\/]*$/, '');
-        binder.dialog('new page', 'text', '', function(dir, value, finalize){
+        binder.dialog('new page ( hoge ) or new dir ( foo/ )', 'text', '', function(dir, value, finalize){
             if (dir != '/') {
                 dir = dir + '/';
             }
@@ -798,6 +875,8 @@ MarkdownBinder.prototype = {
             var selectArea = $(document.createElement('div'));
             dialog.append(selectArea);
 
+            var label = $(document.createElement('span'));
+            label.text('dir: ');
             select = $(document.createElement('select'));
             var option = $(document.createElement('option'));
             option.attr('value', '/');
@@ -810,6 +889,7 @@ MarkdownBinder.prototype = {
                 option.text(dt.data('file'));
                 select.append(option);
             });
+            selectArea.append(label);
             selectArea.append(select);
             
             if (selectValue) {
@@ -823,6 +903,11 @@ MarkdownBinder.prototype = {
         var input = $(document.createElement('input'));
         input.attr('type', inputType);
         input.val(inputValue);
+        if (inputType == 'text') {
+            var label = $(document.createElement('span'));
+            label.text('name: ');
+            inputArea.append(label);
+        }
         inputArea.append(input);
 
         var buttons = $(document.createElement('div'));
@@ -863,7 +948,9 @@ MarkdownBinder.prototype = {
         dialog.css('margin-top', ((dialog.height() / 2 * -1) + $(document).scrollTop()) + 'px');
         dialog.css('margin-left', (dialog.width() / 2 * -1) + 'px');
 
-        if (inputType == 'hidden') {
+        if (selectDir) {
+            select.focus();
+        } else if (inputType == 'hidden') {
             ok.focus();
         } else {
             input.focus();
