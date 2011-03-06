@@ -5,10 +5,13 @@ MarkdownBinder.prototype = {
 
     sid: false,
     expanded: true,
+    editing: false,
     gone: false,
     mode: false,
     path: false,
-    editing: false,
+    basename: false,
+    dir: false,
+    dirs: [],
 
     // util
     source: function() {
@@ -16,6 +19,14 @@ MarkdownBinder.prototype = {
             return '/TOP.txt';
         } else {
             return this.path + '.txt';
+        }
+    },
+
+    catfile: function(dir, file){
+        if (dir == '/') {
+            return dir + file;
+        } else {
+            return dir + '/' + file;
         }
     },
 
@@ -39,12 +50,15 @@ MarkdownBinder.prototype = {
         if (jQuery.browser.msie) {
             url = encodeURI(url);
         }
+        var match = path.match(/^(.*)\/([^\/]*)$/);
         $.ajax({
             url: url + '.html',
             success: function(html){
                 binder.gone = true;
                 binder.initDocument(html);
                 binder.path = path;
+                binder.dir = match[1];
+                binder.basename = match[2];
                 binder.initPagelink();
             },
             error: function(XMLHttpRequest, status, errorThrown){
@@ -88,7 +102,7 @@ MarkdownBinder.prototype = {
         // bind
         $('#expand').bind('click', function(){binder.expand();return false;});
         $('#new').bind('click', function(){binder.dispNewpageDialog();return false;});
-        $('#rebuild').bind('click', function(){binder.dispRebuildDialog();return false;});
+        $('#sync').bind('click', function(){binder.dispSyncDialog();return false;});
 
         // init 
         binder.path = location.pathname;
@@ -209,7 +223,8 @@ MarkdownBinder.prototype = {
         renamepage.attr('type', 'button');
         renamepage.val('rename');
         renamepage.bind('click', function(){
-            binder.dialog('rename page', 'text', binder.path, function(value, finalize){
+            var basename = binder.path.match(/[^\/]*$/);
+            binder.dialog('rename page', 'text', basename, function(value, finalize){
                 $.ajax({
                     url: binder.path,
                     type: 'POST',
@@ -217,7 +232,7 @@ MarkdownBinder.prototype = {
                     data: { rename: value, sid: binder.sid },
                     success: function(html){
                         binder.initSidebar(html);
-                        binder.go(value);
+                        binder.go(binder.catfile(binder.dir, value));
                         finalize();
                     },
                     error: function(XMLHttpRequest, status, errorThrown){
@@ -228,6 +243,29 @@ MarkdownBinder.prototype = {
             return false;
         });
 
+        var movepage = $(document.createElement('input'));
+        movepage.attr('type', 'button');
+        movepage.val('move');
+        movepage.bind('click', function(){
+            binder.dialog('move page', 'hidden', binder.path, function(dir, value, finalize){
+                $.ajax({
+                    url: binder.path,
+                    type: 'POST',
+                    cache: false,
+                    data: { move: dir, sid: binder.sid },
+                    success: function(html){
+                        binder.initSidebar(html);
+                        binder.go(binder.catfile(dir, binder.basename));
+                        finalize();
+                    },
+                    error: function(XMLHttpRequest, status, errorThrown){
+                        $('#dialogResutMessage').text(status + ': ' + errorThrown);
+                    }
+                });
+            }, true);
+            return false;
+        });
+        
         var deletepage = $(document.createElement('input'));
         deletepage.attr('type', 'button');
         deletepage.val('delete');
@@ -266,6 +304,8 @@ MarkdownBinder.prototype = {
         pagemenu.append(copypage);
         pagemenu.append(document.createTextNode(' '));
         pagemenu.append(renamepage);
+        pagemenu.append(document.createTextNode(' '));
+        pagemenu.append(movepage);
         pagemenu.append(document.createTextNode(' '));
         pagemenu.append(deletepage);
         pagelink.append(pagemenu);
@@ -367,6 +407,98 @@ MarkdownBinder.prototype = {
         $('#content').append(loading);
         $('#content').append(editor);
         $('#content').append(preview);
+        
+        // contextMenu
+        var contextMenu = $(document.createElement('div'));
+        contextMenu.attr('id', 'contextMenu');
+        contextMenu.attr('class', 'contextMenu');
+        var rename = $(document.createElement('a'));
+        rename.text('rename');
+        rename.bind('click', function(e){
+            var file = contextMenu.data('file');
+            var basename = contextMenu.data('basename');
+            binder.dialog('rename dir', 'text', basename, function(value, finalize){
+                $.ajax({
+                    url: file,
+                    type: 'POST',
+                    cache: false,
+                    data: { rename_dir: value, sid: binder.sid },
+                    success: function(html){
+                        binder.initSidebar(html);
+                        finalize();
+                    },
+                    error: function(XMLHttpRequest, status, errorThrown){
+                        $('#dialogResutMessage').text(status + ': ' + errorThrown);
+                    }
+                });
+            });
+            return false;
+        });
+        var move = $(document.createElement('a'));
+        move.text('move');
+        move.bind('click', function(e){
+            var file = contextMenu.data('file');
+            binder.dialog('move dir', 'hidden', file, function(dir, value, finalize){
+                $.ajax({
+                    url: file,
+                    type: 'POST',
+                    cache: false,
+                    data: { move_dir: dir, sid: binder.sid },
+                    success: function(html){
+                        binder.initSidebar(html);
+                        finalize();
+                    },
+                    error: function(XMLHttpRequest, status, errorThrown){
+                        $('#dialogResutMessage').text(status + ': ' + errorThrown);
+                    }
+                });
+            }, true);
+            return false;
+        });
+        var del = $(document.createElement('a'));
+        del.text('delete');
+        del.bind('click', function(){
+            var file = contextMenu.data('file');
+            binder.dialog('delete dir now ?', 'hidden', file, function(value, finalize){
+                $.ajax({
+                    url: file,
+                    type: 'POST',
+                    cache: false,
+                    data: { delete_dir: 1, sid: binder.sid },
+                    success: function(html){
+                        binder.initSidebar(html);
+                        finalize();
+                    },
+                    error: function(XMLHttpRequest, status, errorThrown){
+                        $('#dialogResutMessage').text(status + ': ' + errorThrown);
+                    }
+                });
+            });
+            return false;
+        });
+        move.hover(function(){
+            $(this).css('background','#ffff99');
+        },function(){
+            $(this).css('background','');
+        });
+        rename.hover(function(){
+            $(this).css('background','#ffff99');
+        },function(){
+            $(this).css('background','');
+        });
+        del.hover(function(){
+            $(this).css('background','#ffff99');
+        },function(){
+            $(this).css('background','');
+        });
+        contextMenu.append(move);
+        contextMenu.append(rename);
+        contextMenu.append(del);
+        contextMenu.hide();
+        $('body').append(contextMenu);
+        $('body').bind('click', function(){
+            contextMenu.hide();
+        });
     },
 
     initHeight: function(){
@@ -440,21 +572,9 @@ MarkdownBinder.prototype = {
             if (ele.length > 0 && ele.get(0).tagName.toLowerCase() == 'dl') {
                 var display = ele.css('display');
                 if (display == "" || display == "none") {
-                    if (binder.sid) {
-                        dt.find('div').slideUp('fast', function(){
-                            ele.slideDown('fast');
-                        });
-                    } else {
-                        ele.slideDown('fast');
-                    }
+                    ele.slideDown('fast');
                 } else {
-                    if (binder.sid) {
-                        ele.slideUp('fast', function(){
-                            dt.find('div').slideDown('fast');
-                        });
-                    } else {
-                        ele.slideUp('fast');
-                    }
+                    ele.slideUp('fast');
                 }
             }
             return false;
@@ -463,58 +583,90 @@ MarkdownBinder.prototype = {
 
     initAdminSidebar: function(){
         var binder = this;
-        $('#pages').find('dt').each(function(){
-            var dt = $(this);
-            var file = dt.data('file');
-            var rename = $(document.createElement('input'));
-            rename.val('rename');
-            rename.attr('type', 'button');
-            rename.bind('click', function(){
-                binder.dialog('rename dir', 'text', file, function(value, finalize){
-                    $.ajax({
-                        url: file,
-                        type: 'POST',
-                        cache: false,
-                        data: { rename_dir: value, sid: binder.sid },
-                        success: function(html){
-                            binder.initSidebar(html);
-                            finalize();
-                        },
-                        error: function(XMLHttpRequest, status, errorThrown){
-                            $('#dialogResutMessage').text(status + ': ' + errorThrown);
-                        }
-                    });
-                });
+        
+        binder.dirs = [];
+        $('#pages dt span').each(function(){
+            var dt = $(this).parent();
+            binder.dirs.push(dt);
+            $(this).rightClick(function(){
+                var contextMenu = $('#contextMenu');
+                contextMenu.data('file', dt.data('file'));
+                contextMenu.data('basename', dt.data('basename'));
+                contextMenu.show();
+                contextMenu.css('top', dt.offset().top + dt.height() + 'px');
+                contextMenu.css('left', dt.offset().left + 'px');
                 return false;
             });
-            var del = $(document.createElement('input'));
-            del.val('delete');
-            del.attr('type', 'button');
-            del.bind('click', function(){
-                binder.dialog('delete dir now ?', 'hidden', file, function(value, finalize){
-                    $.ajax({
-                        url: file,
-                        type: 'POST',
-                        cache: false,
-                        data: { delete_dir: 1, sid: binder.sid },
-                        success: function(html){
-                            binder.initSidebar(html);
-                            finalize();
-                        },
-                        error: function(XMLHttpRequest, status, errorThrown){
-                            $('#dialogResutMessage').text(status + ': ' + errorThrown);
-                        }
-                    });
-                });
-                return false;
-            });
-            var wraper = $(document.createElement('div'));
-            wraper.hide();
-            wraper.append(rename);
-            wraper.append(document.createTextNode(' '));
-            wraper.append(del);
-            dt.append(wraper);
         });
+        
+        // $('#pages').find('dt').each(function(){
+        //     var dt = $(this);
+        //     var file = dt.data('file');
+        //     var rename = $(document.createElement('input'));
+        //     rename.val('rename');
+        //     rename.attr('type', 'button');
+        //     rename.bind('click', function(){
+        //         binder.dialog('rename dir', 'text', file, function(value, finalize){
+        //             $.ajax({
+        //                 url: file,
+        //                 type: 'POST',
+        //                 cache: false,
+        //                 data: { rename_dir: value, sid: binder.sid },
+        //                 success: function(html){
+        //                     binder.initSidebar(html);
+        //                     finalize();
+        //                 },
+        //                 error: function(XMLHttpRequest, status, errorThrown){
+        //                     $('#dialogResutMessage').text(status + ': ' + errorThrown);
+        //                 }
+        //             });
+        //         });
+        //         return false;
+        //     });
+        //     var del = $(document.createElement('input'));
+        //     del.val('delete');
+        //     del.attr('type', 'button');
+        //     del.bind('click', function(){
+        //         binder.dialog('delete dir now ?', 'hidden', file, function(value, finalize){
+        //             $.ajax({
+        //                 url: file,
+        //                 type: 'POST',
+        //                 cache: false,
+        //                 data: { delete_dir: 1, sid: binder.sid },
+        //                 success: function(html){
+        //                     binder.initSidebar(html);
+        //                     finalize();
+        //                 },
+        //                 error: function(XMLHttpRequest, status, errorThrown){
+        //                     $('#dialogResutMessage').text(status + ': ' + errorThrown);
+        //                 }
+        //             });
+        //         });
+        //         return false;
+        //     });
+        //     var menu = $(document.createElement('span'));
+        //     menu.css('position', 'absolute');
+        //     menu.css('top', '4px');
+        //     menu.css('zIndex', '99990');
+        //     menu.append(rename);
+        //     menu.append(document.createElement('br'));
+        //     menu.append(del);
+        //     menu.hide();
+        //     var edit = $(document.createElement('input'));
+        //     edit.val('▼');
+        //     edit.attr('type', 'button');
+        //     edit.bind('click', function(){
+        //         var display = menu.css('display');
+        //         if (display == '' || display == 'none') {
+        //             menu.css('display', 'inline')
+        //         } else {
+        //             menu.hide();
+        //         }
+        //     });
+        //     dt.css('position', 'relative');
+        //     dt.append(edit);
+        //     dt.append(menu);
+        // });
     },
 
     openEditor: function(){
@@ -581,10 +733,13 @@ MarkdownBinder.prototype = {
     dispNewpageDialog: function(){
         var binder = this;
         var url = binder.path;
-        url = url.replace(/[^\/]*$/, '');
-        binder.dialog('new page', 'text', url, function(value, finalize){
+        url = url.replace(/\/[^\/]*$/, '');
+        binder.dialog('new page', 'text', '', function(dir, value, finalize){
+            if (dir != '/') {
+                dir = dir + '/';
+            }
             $.ajax({
-                url: value,
+                url: dir + value,
                 type: 'POST',
                 cache: false,
                 data: { create: 1, sid: binder.sid },
@@ -596,12 +751,12 @@ MarkdownBinder.prototype = {
                     $('#dialogResutMessage').text(status + ': ' + errorThrown);
                 }
             });
-        });
+        }, true, url);
     },
 
-    dispRebuildDialog: function(){
+    dispSyncDialog: function(){
         var binder = this;
-        binder.dialog('rebuild now ?', 'hidden', '', function(value, finalize){
+        binder.dialog('sync now ?', 'hidden', '', function(value, finalize){
             $.ajax({
                 url: '/',
                 type: 'POST',
@@ -618,8 +773,8 @@ MarkdownBinder.prototype = {
         });
     },
     
-    dialog: function(messageText, inputType, inputValue, callback){
-
+    dialog: function(messageText, inputType, inputValue, callback, selectDir, selectValue){
+        var binder = this;
         var overlay = $(document.createElement('div'));
         overlay.attr('class', 'dialogOverlay');
         overlay.height($(document).height());
@@ -638,6 +793,30 @@ MarkdownBinder.prototype = {
         message.text(messageText);
         dialog.append(message);
 
+        var select;
+        if (selectDir) {
+            var selectArea = $(document.createElement('div'));
+            dialog.append(selectArea);
+
+            select = $(document.createElement('select'));
+            var option = $(document.createElement('option'));
+            option.attr('value', '/');
+            option.text('/');
+            select.append(option);
+            jQuery.each(binder.dirs, function(){
+                var dt = $(this);
+                var option = $(document.createElement('option'));
+                option.attr('value', dt.data('file'));
+                option.text(dt.data('file'));
+                select.append(option);
+            });
+            selectArea.append(select);
+            
+            if (selectValue) {
+                select.val(selectValue);
+            }
+        }
+
         var inputArea = $(document.createElement('div'));
         dialog.append(inputArea);
 
@@ -653,7 +832,11 @@ MarkdownBinder.prototype = {
         ok.attr('type', 'button');
         ok.attr('value', 'OK');
         ok.bind('click', function(){
-            callback(input.val(), finalize);
+            if (selectDir) {
+                callback(select.val(), input.val(), finalize);
+            } else {
+                callback(input.val(), finalize);
+            }
         });
         buttons.append(ok);
         

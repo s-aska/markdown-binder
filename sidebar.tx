@@ -8,7 +8,7 @@
 [% '</dl>'.repeat(dep - cur_dep) | mark_raw %][% SET dep = cur_dep %]
 [% END %]
 [% IF file.is_dir %]
-<dt data-file="[% file.stringify %]"><span>[% file.basename %]</span></dt>
+<dt data-depth="[% file.depth %]" data-file="[% file.stringify %]" data-basename="[% file.basename %]"><span>[% file.basename %]</span></dt>
 [% ELSE %]
 [% SET path = file == '/TOP.txt' ? '/' : file.stringify.replace('.txt$', '') %]
 <dd data-file="[% path %]"><a data-file="[% path %]" href="[% path %]">[% file.basename.replace('.txt$', '') %]</a></dd>

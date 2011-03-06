@@ -57,6 +57,7 @@ my $rebuild = sub {
             my $file = shift;
             my $path = decode('utf8', $file);
             $path=~s|^$doc_dir||;
+            return if substr(file($path)->basename, 0, 1) eq '.';
             return unless length $path;
             if (-f $file && $file=~/$suffix$/) {
                 $path = file($path);
@@ -117,6 +118,7 @@ my $valid_password = sub {
 my $res_200 = [ 200, [ 'Content-Type' => 'text/html' ], [ '' ] ];
 my $res_403 = [ 403, [ 'Content-Type' => 'text/html' ], [ '403 Forbidden.' ] ];
 my $res_404 = [ 404, [ 'Content-Type' => 'text/html' ], [ '404 Not Found.' ] ];
+my $res_409 = [ 409, [ 'Content-Type' => 'text/html' ], [ '409 Conflict Exists File or Dir.' ] ];
 
 my $check_path = sub {
     return 1 if grep($_ eq '..', split('/', shift));
@@ -206,7 +208,7 @@ my $app = sub {
         elsif (my $dest = $req->param('copy')) {
             return $res_403 if $check_path->($dest);
             my $dest_file = file($doc_dir, $dest . '.txt');
-            return $res_403 if -f $dest_file;
+            return $res_409 if -f $dest_file;
             $dest_file->dir->mkpath unless -d $dest_file->dir;
             my $dest_fh = $dest_file->openw;
             $dest_fh->print($text_file->slurp);
@@ -218,8 +220,20 @@ my $app = sub {
         # rename page
         elsif (my $dest = $req->param('rename')) {
             return $res_403 if $check_path->($dest);
-            my $dest_file = file($doc_dir, $dest . '.txt');
-            return $res_403 if -f $dest_file;
+            my $dest_file = file($doc_dir, file($file)->dir, $dest . '.txt');
+            return $res_409 if -f $dest_file;
+            $dest_file->dir->mkpath unless -d $dest_file->dir;
+            rename($text_file, $dest_file);
+            $cache_file->remove;
+            $rebuild->();
+            return $render_sidebar->($req);
+        }
+        
+        # move page
+        elsif (my $dest = $req->param('move')) {
+            return $res_403 if $check_path->($dest);
+            my $dest_file = file($doc_dir, $dest, file($file)->basename . '.txt');
+            return $res_409 if -f $dest_file;
             $dest_file->dir->mkpath unless -d $dest_file->dir;
             rename($text_file, $dest_file);
             $cache_file->remove;
@@ -238,12 +252,33 @@ my $app = sub {
             }
         }
         
-        # rename dir
-        elsif (my $dest = $req->param('rename_dir')) {
+        # move dir
+        elsif (my $dest = $req->param('move_dir')) {
             return $res_403 if $check_path->($dest);
+            $dest = dir($dest, file($file)->basename);
             my $src_dir = dir($doc_dir, $file);
             my $dest_dir = dir($doc_dir, $dest);
             my $cache_dest_dir = dir($cache_dir, $dest);
+            return $res_409 if -d $dest_dir;
+            $dest_dir->parent->mkpath unless -d $dest_dir->parent;
+            if (-d $src_dir) {
+                rename($src_dir, $dest_dir);
+                rename($cache_file, $cache_dest_dir);
+                $rebuild->();
+                return $render_sidebar->($req);
+            } else {
+                return $res_404;
+            }
+        }
+        
+        # rename dir
+        elsif (my $dest = $req->param('rename_dir')) {
+            return $res_403 if $check_path->($dest);
+            $dest = dir(file($file)->dir, $dest);
+            my $src_dir = dir($doc_dir, $file);
+            my $dest_dir = dir($doc_dir, $dest);
+            my $cache_dest_dir = dir($cache_dir, $dest);
+            return $res_409 if -d $dest_dir;
             $dest_dir->parent->mkpath unless -d $dest_dir->parent;
             if (-d $src_dir) {
                 rename($src_dir, $dest_dir);
@@ -311,7 +346,7 @@ builder {
         path => qr!\.html$!, root => $cache_dir;
     enable 'Static',
         path => qr!\.txt$!, root => $doc_dir;
-    enable 'XForwardedFor',
-        trust => [qw(127.0.0.1/8)];
+#    enable 'XForwardedFor',
+#        trust => [qw(127.0.0.1/8)];
     $app;
 };

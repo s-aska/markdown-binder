@@ -194,6 +194,21 @@ nav dt, nav dl{
     right: 0;
     text-align: right;
 }
+.contextMenu {
+    position: absolute;
+    background-color: #fff;
+    border-top: 1px solid #68a9cf;    
+    border-left: 1px solid #68a9cf;    
+    border-right: 1px solid #68a9cf;    
+}
+.contextMenu a {
+    display: block;
+    border-bottom: 1px solid #68a9cf;
+    padding: 4px;
+}
+.contextMenu a:hover {
+    background-color: yellow;
+}
 
 article{
     padding:20px 0;
@@ -266,7 +281,7 @@ strong{
 }
 
 p{
-    margin-bottom:20px;
+    margin-bottom:6px;
     letter-spacing: 1px;
     line-height: 220%;
 }
