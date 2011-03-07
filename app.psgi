@@ -110,13 +110,14 @@ my $gen_id = sub {
 };
 my $valid_password = sub {
     my $req = shift;
+    my $sid = $req->param('sid') || $req->cookies->{sid};
     if (!-f $pass_file) {
         warn 'unset password.';
         return $gen_id->();
     } elsif ($bad_ip->{ $req->address } > 5) {
         warn 'attack ip ' . $req->address;
         return ;
-    } elsif (exists $sessions->{ $req->param('sid') }) {
+    } elsif (exists $sessions->{ $sid }) {
         warn 'logined';
     } elsif ($password ne crypt($req->param('password'), $password)) {
         warn 'invalid password';
