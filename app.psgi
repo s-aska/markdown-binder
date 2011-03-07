@@ -181,7 +181,9 @@ my $app = sub {
         # upload file
         elsif (my $file = $req->upload('file')) {
             my $basename = $file->basename;
-            File::Copy::move($file->path, dir($upload_dir, $basename));
+            my $dest = file($upload_dir, $basename);
+            File::Copy::move($file->path, $dest);
+            chmod 0644, $dest;
             return [ 200, [ 'Content-Type' => 'text/plain' ], [ uri_escape($basename) ] ];
         }
         
