@@ -1083,9 +1083,9 @@ MarkdownBinder.prototype = {
         });
         buttons.append(close);
 
-        var result = $(document.createElement('div'));
-        result.attr('id', 'dialogResutMessage');
-        result.attr('class', 'dialogResutMessage');
+        var result = $(document.createElement('textarea'));
+        result.css('width', '100%');
+        result.css('height', '120px');
         dialog.append(result);
 
         var body = $('body');
@@ -1110,9 +1110,16 @@ MarkdownBinder.prototype = {
                     // console.log(xhr.contents().text());
                     // json = $.parseJSON(xhr.contents().text());
                 }
-                var msg = $(document.createElement('div'));
-                msg.text('<img src="/static/img/upload/' + text + '">');
-                result.append(msg);
+                // var msg = $(document.createElement('div'));
+                // msg.text('<img src="/static/img/upload/' + text + '">');
+                // result.append(msg);
+                result.val(result.val() + '<img src="/static/img/upload/' + text + '">' + "\n");
+                result.select();
+                
+                var editor = $('#editor');
+                if (editor.length > 0 && editor.css('display') != 'none') {
+                    editor.val('<img src="/static/img/upload/' + text + '">' + "\n" + editor.val());
+                }
             }
         });
 
