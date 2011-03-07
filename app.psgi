@@ -31,6 +31,12 @@ my $default_conf = {
 
 my $conf = -f $conf_file ? decode_json($conf_file->slurp) : $default_conf;
 
+my @phones = qw/
+    iPhone
+    iPad
+    Android
+/;
+
 # override Path::Class method
 no strict 'refs';
 *{'Path::Class::Entity::depth'} = sub {
@@ -179,10 +185,10 @@ my $app = sub {
         }
         
         # upload file
-        elsif (my $file = $req->upload('file')) {
-            my $basename = $file->basename;
+        elsif (my $upload_file = $req->upload('file')) {
+            my $basename = $upload_file->basename;
             my $dest = file($upload_dir, $basename);
-            File::Copy::move($file->path, $dest);
+            File::Copy::move($upload_file->path, $dest);
             chmod 0644, $dest;
             return [ 200, [ 'Content-Type' => 'text/plain' ], [ uri_escape($basename) ] ];
         }
@@ -217,6 +223,8 @@ my $app = sub {
             }
             $text_file->dir->mkpath unless -d $text_file->dir;
             unless (length file($file)->basename) {
+                warn $file;
+                warn file($file)->basename;
                 $rebuild->();
                 return $render_sidebar->($req);
             }
@@ -357,11 +365,15 @@ my $app = sub {
         return $res_404;
     }
     
+    my $is_pc = scalar(grep { $req->user_agent=~/$_/ } @phones) ? 0 : 1;
+    warn $is_pc;
     my $html = $cache_file->slurp;
     
     return
         $render->($req, 'index.html', {
             conf    => $conf,
+            is_pc   => $is_pc,
+            logined => exists($sessions->{ $req->cookies->{sid} }),
             files   => \@files,
             content => $html,
             path    => $req->path,
