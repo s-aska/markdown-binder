@@ -210,8 +210,17 @@ MarkdownBinder.prototype = {
             binder.dispSyncDialog();
             return false;
         });
+        var upload = $(document.createElement('a'));
+        upload.text('upload...');
+        upload.attr('href', '#');
+        upload.bind('click', function(){
+            siteMenu.hide();
+            binder.dispUploadDialog();
+            return false;
+        });
         siteMenu.append(newpage);
         siteMenu.append(syncpage);
+        siteMenu.append(upload);
         var siteMore = $(document.createElement('a'));
         siteMore.text('more ');
         var allow = $(document.createElement('span'));
@@ -668,6 +677,20 @@ MarkdownBinder.prototype = {
             }
             return false;
         });
+        /*
+        $('#sidebar dl dl').each(function(){
+            $(this).hide();
+        });
+        $('#sidebar dd').each(function(){
+            var dd = $(this);
+            var file = dd.data('file');
+            if (file && location.pathname == file) {
+                dd.parents('dl').each(function(){
+                    $(this).show();
+                });
+            }
+        });
+        */
     },
 
     initAdminSidebar: function(){
@@ -1003,5 +1026,99 @@ MarkdownBinder.prototype = {
                 ok.click();
             }
         });
+    },
+    
+    dispUploadDialog: function(){
+        var binder = this;
+        
+        var overlay = $(document.createElement('div'));
+        overlay.attr('class', 'dialogOverlay');
+        overlay.height($(document).height());
+
+        var dialog = $(document.createElement('div'));
+        dialog.attr('id', 'dialog');
+        dialog.attr('class', 'dialog');
+
+        var finalize = function(){
+            overlay.remove();
+            dialog.remove();
+        };
+
+        var message = $(document.createElement('div'));
+        message.attr('class', 'dialogMessage');
+        message.text('Drag and Drop Image.');
+        dialog.append(message);
+
+        var form = $(document.createElement('form'));
+        form.attr('id', 'file_upload');
+        form.attr('action', '/_upload');
+        form.attr('method', 'POST');
+        form.attr('enctype', 'multipart/form-data');
+        
+        var input = $(document.createElement('input'));
+        input.attr('type', 'file');
+        input.attr('name', 'file');
+        input.attr('multiple', true);
+        
+        var button = $(document.createElement('button'));
+        button.text('Upload');
+        
+        //var dragme = $(document.createElement('div'));
+        //dragme.text('Drag Me');
+        
+        form.append(input);
+        form.append(button);
+        //form.append(dragme);
+        
+        dialog.append(form);
+
+        var buttons = $(document.createElement('div'));
+        dialog.append(buttons);
+        
+        var close = $(document.createElement('input'));
+        close.attr('type', 'button');
+        close.attr('value', 'CLOSE');
+        close.bind('click', function(){
+            finalize();
+        });
+        buttons.append(close);
+
+        var result = $(document.createElement('div'));
+        result.attr('id', 'dialogResutMessage');
+        result.attr('class', 'dialogResutMessage');
+        dialog.append(result);
+
+        var body = $('body');
+        if (jQuery.browser.msie) {
+            overlay.css('opacity', '.4')
+        }
+        body.append(overlay);
+        body.append(dialog);
+
+        $('#file_upload').fileUpload({
+            namespace: 'file_upload',
+            onLoad: function(event, files, index, xhr, handler){
+                //var json = handler.parseResponse(xhr);
+                var text;
+                if (typeof xhr.responseText !== 'undefined') {
+                    text = xhr.responseText;
+                    // console.log(xhr.responseText);
+                    // json = $.parseJSON(xhr.responseText);
+                } else {
+                    // Instead of an XHR object, an iframe is used for legacy browsers:
+                    text = xhr.contents().text();
+                    // console.log(xhr.contents().text());
+                    // json = $.parseJSON(xhr.contents().text());
+                }
+                var msg = $(document.createElement('div'));
+                msg.text('<img src="/static/img/upload/' + text + '">');
+                result.append(msg);
+            }
+        });
+
+        dialog.css('margin-top', ((dialog.height() / 2 * -1) + $(document).scrollTop()) + 'px');
+        dialog.css('margin-left', (dialog.width() / 2 * -1) + 'px');
+
+        input.focus();
     }
 }

@@ -1,20 +1,35 @@
 
 use strict;
+use Digest::MD5;
 use Encode;
+use File::Basename;
+use File::Copy;
+use File::Spec::Functions;
+use JSON;
 use Path::Class;
 use Plack::Builder;
 use Plack::Request;
 use Text::Markdown;
 use Text::Xslate;
-use Digest::MD5;
 use Time::HiRes;
+use URI::Escape;
 
-my $doc_dir   = dir($ENV{'MARKDOWN_BINDER_DOC'} || './doc/')->absolute;
-my $cache_dir = dir($ENV{'MARKDOWN_BINDER_CACHE'} || './cache/')->absolute;
-my $pass_file = file($ENV{'MARKDOWN_BINDER_PW'} || './.password');
-my $top       = $ENV{'MARKDOWN_BINDER_TOP'} || 'TOP';
-my $suffix    = '.txt';
-my $toppage   = $top . $suffix;
+my $base_dir     = dirname(__FILE__);
+my $doc_dir      = dir($ENV{'MARKDOWN_BINDER_DOC'} || catdir($base_dir, 'doc'))->absolute;
+my $cache_dir    = dir($ENV{'MARKDOWN_BINDER_CACHE'} || catdir($base_dir, 'cache'))->absolute;
+my $pass_file    = file($ENV{'MARKDOWN_BINDER_PW'} || catfile($base_dir, '.password'));
+my $conf_file    = file($ENV{'MARKDOWN_BINDER_PW'} || catfile($base_dir, 'config.json'));
+my $top          = $ENV{'MARKDOWN_BINDER_TOP'} || 'TOP';
+my $suffix       = '.txt';
+my $toppage      = $top . $suffix;
+my $upload_dir   = 'htdocs/static/img/upload';
+
+my $default_conf = {
+    title => 'no title',
+    footer => 'copyright'
+};
+
+my $conf = -f $conf_file ? decode_json($conf_file->slurp) : $default_conf;
 
 # override Path::Class method
 no strict 'refs';
@@ -160,6 +175,13 @@ my $app = sub {
         my $login = $valid_password->($req);
         if (!$login) {
             return $res_403;
+        }
+        
+        # upload file
+        elsif (my $file = $req->upload('file')) {
+            my $basename = $file->basename;
+            File::Copy::move($file->path, dir($upload_dir, $basename));
+            return [ 200, [ 'Content-Type' => 'text/plain' ], [ uri_escape($basename) ] ];
         }
         
         # change password
@@ -336,6 +358,7 @@ my $app = sub {
     
     return
         $render->($req, 'index.html', {
+            conf    => $conf,
             files   => \@files,
             content => $html,
             path    => $req->path,

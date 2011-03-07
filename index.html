@@ -1,11 +1,15 @@
 <html>
 <head>
-<title>The Document of Aska</title>
+<title>[% conf.title %]</title>
 <link rel="stylesheet" type="text/css" href="/static/css/style.css" media="all" />
 <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Crimson+Text">
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"></script>
+<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.10/themes/base/jquery-ui.css" id="theme">
+<link rel="stylesheet" href="/static/css/jquery.fileupload-ui.css">
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
 <script type="text/javascript" src="/static/js/jquery.cookie.js"></script>
 <script type="text/javascript" src="/static/js/jquery.textarea.js"></script>
+<script type="text/javascript" src="/static/js/jquery.fileupload.js"></script>
+<script type="text/javascript" src="/static/js/jquery.fileupload-ui.js"></script>
 <script type="text/javascript" src="/static/js/binder.js"></script>
 <script>
 $(document).ready(function() {
@@ -16,20 +20,6 @@ $(document).ready(function() {
     binder.mode = 'login';
     [% END %]
     binder.initApplication();
-    /*
-    $('#sidebar dl dl').each(function(){
-        $(this).hide();
-    });
-    $('#sidebar dd').each(function(){
-        var dd = $(this);
-        var file = dd.data('file');
-        if (file && location.pathname == file) {
-            dd.parents('dl').each(function(){
-                $(this).show();
-            });
-        }
-    });
-    */
 });
 </script>
 <!--[if IE]>
@@ -41,19 +31,11 @@ body {text-align:center;}
 <![endif]-->
 </head>
 <body>
-<h1 id="siteTitle">The Document of Aska</h1>
+<h1 id="siteTitle">[% conf.title %]</h1>
 <div id="wrapper" class="clearfix">
 <nav id="sidebar">
-<div id="pages">
-[% INCLUDE 'sidebar.tx' %]
-</div>
-<div id="sidemenu">
-<a id="expand" href="#">expand</a>
-<!-- <span id="adminsidemenu" style="display: none;">
-<input id="new" type="button" value="new">
-<input id="sync" type="button" value="sync">
-</span> -->
-</div>
+<div id="pages">[% INCLUDE 'sidebar.tx' %]</div>
+<div id="sidemenu"><a id="expand" href="#">expand</a></div>
 </nav>
 <article>
 <div id="content">
@@ -61,12 +43,10 @@ body {text-align:center;}
 <div id="pagelink">
 <a href="[% path %]" id="permalink">permalink</a> | 
 <a href="[% path %].txt" id="source" target="_blank">source</a>
-<!-- <iframe id="likebutton" src="" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:80px; height:21px;" allowTransparency="true"></iframe>
-<a id="tweetbutton" href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="su_aska" data-lang="ja">Tweet</a><script id="tweetcount" type="text/javascript" src="http://platform.twitter.com/widgets.js"></script> -->
 </div>
 </div>
 </article>
 </div>
-<footer>© 2011 <a href="http://www.7kai.org/">七階</a></footer>
+<footer>[% conf.footer | mark_raw %]</footer>
 </body>
 </html>
