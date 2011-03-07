@@ -1110,9 +1110,6 @@ MarkdownBinder.prototype = {
                     // console.log(xhr.contents().text());
                     // json = $.parseJSON(xhr.contents().text());
                 }
-                // var msg = $(document.createElement('div'));
-                // msg.text('<img src="/static/img/upload/' + text + '">');
-                // result.append(msg);
                 result.val(result.val() + '<img src="/static/img/upload/' + text + '">' + "\n");
                 result.select();
                 
