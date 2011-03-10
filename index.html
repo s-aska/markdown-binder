@@ -5,22 +5,10 @@
 <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Crimson+Text">
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
 <script type="text/javascript" src="/static/js/jquery.cookie.js"></script>
-[% IF ( install || login || logined ) && is_pc %]
-<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.10/themes/base/jquery-ui.css" id="theme">
-<link rel="stylesheet" href="/static/css/jquery.fileupload-ui.css">
-<script type="text/javascript" src="/static/js/jquery.textarea.js"></script>
-<script type="text/javascript" src="/static/js/jquery.fileupload.js"></script>
-<script type="text/javascript" src="/static/js/jquery.fileupload-ui.js"></script>
-[% END %]
 <script type="text/javascript" src="/static/js/binder.js"></script>
 <script>
 $(document).ready(function() {
     var binder = new MarkdownBinder();
-    [% IF install %]
-    binder.mode = 'install';
-    [% ELSIF login %]
-    binder.mode = 'login';
-    [% END %]
     binder.initApplication();
 });
 </script>

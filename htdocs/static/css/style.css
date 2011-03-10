@@ -194,35 +194,6 @@ nav dt, nav dl{
     right: 0;
     text-align: right;
 }
-a.more {
-    text-decoration: none;
-}
-.allow {
-    text-decoration: none;
-    font-size: 10px;
-    color: #acd2e8;
-}
-a.allow:hover {
-    text-decoration: none;
-}
-.contextMenu {
-    position: absolute;
-    background-color: #fff;
-    border-top: 1px solid #68a9cf;    
-    border-left: 1px solid #68a9cf;    
-    border-right: 1px solid #68a9cf;    
-}
-.contextMenu a {
-    display: block;
-    border-bottom: 1px solid #68a9cf;
-    padding: 4px;
-    font-size: 12px;
-    text-decoration: none;
-}
-.contextMenu a:hover {
-    background-color: #ffffb2;
-    text-decoration: none;
-}
 
 article{
     padding:20px 0;
@@ -242,12 +213,6 @@ article{
 	right: 0;
 	text-align: right;
 }
-
-#editmenu{
-	display: none;
-}
-
-
 
 footer{
     text-align:center;
@@ -339,32 +304,5 @@ pre{
 pre code{
     padding: 0;
     border-bottom: none;
-}
-
-
-
-/* system */
-
-.dialog {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    background-color: #ffffff;
-    padding: 20px;
-    border: 4px solid black;
-    z-index: 99999;
-    margin: 0;
-    opacity: 1;
-}
-.dialogOverlay {
-    position: absolute;
-    z-index: 99998;
-    top: 0px;
-    left: 0px;
-    width: 100%;
-    background-color: #000000;
-    opacity: .8;
-}
-.dialogResutMessage {
-    color: red;
+    letter-spacing: 0;
 }
