@@ -3,29 +3,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=320, initial-scale=1">
 <title>[% conf.title %]</title>
+<style>
+nav ul {
+  padding-left: 1em;
+}
+nav li {
+  list-style-type: none;
+}
+</style>
 </head>
 <body>
 <h1>[% conf.title %]</h1>
 [%- IF path == '/' %]
 <nav>
-[%- SET dep = 0 %]
-[%- SET cur_dep = 0 %]
-[%- FOREACH file IN files %]
-[%- SET cur_dep = file.depth %]
-[%- IF dep < cur_dep %]
-[% '<ul>'.repeat(cur_dep - dep) | mark_raw %][% SET dep = cur_dep %]
-[%- ELSIF dep > cur_dep %]
-[% '</ul>'.repeat(dep - cur_dep) | mark_raw %][% SET dep = cur_dep %]
-[%- END %]
-[%- IF file.is_dir %]
-<li>[% file.basename %]</li>
-[%- ELSE %]
-[%- SET path = file.stringify.replace('.txt$', '') %]
-[%- SET basename = file.basename.replace('.txt$', '') %]
-<li><a href="[% path %]">[% basename %]</a></li>
-[%- END %]
-[%- END %]
-[% '</ul>'.repeat(dep) | mark_raw %]
+[% INCLUDE 'sidebar.tx' %]
 </nav>
 [%- ELSE %]
 <article>
