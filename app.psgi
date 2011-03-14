@@ -74,6 +74,8 @@ my $rebuild = sub {
                 $path = file($path);
                 my $text = $file->slurp;
                 my $html = Text::Markdown->new->markdown($text);
+                $html=~s|>\n{2,}<|>\n<|g;
+                $html=~s|\n$||;
                 my $cache_file = file($cache_dir, substr($path, 0, -4) . '.html');
                 if (!-f $cache_file or ($cache_file->stat->mtime < $file->stat->mtime)) {
                     $cache_file->dir->mkpath unless -d $cache_file->dir;
