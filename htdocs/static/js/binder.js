@@ -63,8 +63,8 @@ MarkdownBinder.prototype = {
                 }
             },
             error: function(XMLHttpRequest, status, errorThrown){
-                $('#page').html(status + ': ' + errorThrown);
-                $('#pagelink').hide();
+                $('article section').html(status + ': ' + errorThrown);
+                $('article nav').hide();
             }
         });
     },
@@ -72,12 +72,14 @@ MarkdownBinder.prototype = {
     expand: function(){
         var binder = this;
         if (binder.expanded) {
-            $('#sidebar dl dl').hide();
-            $('#sidebar dt').addClass('close');
+            $('aside nav ul ul').hide();
+            $('aside nav li.dir').addClass('close');
+            $('#expand').addClass('close');
             binder.expanded = false;
         } else {
-            $('#sidebar dl dl').show();
-            $('#sidebar dt').removeClass('close');
+            $('aside nav ul ul').show();
+            $('aside nav li.dir').removeClass('close');
+            $('#expand').removeClass('close');
             binder.expanded = true;
             binder.initHeight();
         }
@@ -100,6 +102,13 @@ MarkdownBinder.prototype = {
 
         // bind
         $('#expand').bind('click', function(){binder.expand();return false;});
+        $('#expand').hover(function(){
+            $(this).css('cursor','pointer');
+            $(this).addClass('highlight');
+        },function(){
+            $(this).css('cursor','default');
+            $(this).removeClass('highlight');
+        });
 
         // init 
         binder.path = location.pathname;
@@ -107,37 +116,35 @@ MarkdownBinder.prototype = {
         binder.initPagelink();
         binder.initDocument();
         binder.initHeight();
-        binder.title = $('#siteTitle').text();
+        binder.title = $('header h1').text();
     },
 
     initHeight: function(){
-        $('#page').removeAttr('style');
-        $('#sidebar').removeAttr('style');
-        var sidebar_height = $('#sidebar').height();
-        var document_height = $('#page').height();
+        $('article').removeAttr('style');
+        $('aside').removeAttr('style');
+        var sidebar_height = $('aside').height();
+        var document_height = $('article').height();
         if (sidebar_height > document_height) {
-            $('#page').height(sidebar_height);
+            $('article').height(sidebar_height);
         } else {
-            $('#sidebar').height(document_height);
+            $('aside').height(document_height);
         }
     },
 
     initPagelink: function() {
         var binder = this;
-        $('#pagelink').show();
-        var permalink = $('#permalink');
-        permalink.attr('href', binder.path);
-        var source = $('#source');
-        source.attr('href', binder.source());
+        $('article nav').show();
+        $('#permalink').attr('href', binder.path);
+        $('#source').attr('href', binder.source());
     },
 
     initDocument: function(html){
         var binder = this;
         if (html) {
-            $('#page').html(html);
+            $('article section').html(html);
             binder.initHeight();
         }
-        $('#page').find('a').each(function(){
+        $('article section').find('a').each(function(){
             if ($(this).attr('href').match(/^https?:/)) {
                 $(this).attr('target', '_blank');
             } else {
@@ -146,20 +153,16 @@ MarkdownBinder.prototype = {
         });
     },
 
-    initSidebar: function(html){
+    initSidebar: function(){
         var binder = this;
-        if (html) {
-            $('#pages').html(html);
-            binder.initHeight();
-        }
-        $('#pages').find('a').each(function(){
+        $('aside').find('a').each(function(){
             var a = $(this);
             a.bind('click', function(){
-                binder.go(a.data('file'));
+                binder.go(a.attr('href'));
                 return false;
             });
         });
-        $('#pages dt').hover(function(){
+        $('aside li.dir').hover(function(){
             $(this).css('cursor','pointer');
             $(this).addClass('highlight');
         },function(){
@@ -167,43 +170,44 @@ MarkdownBinder.prototype = {
             $(this).removeClass('highlight');
         });
         
-        $('#pages dt span').click(function(){
-            var dt = $(this).parent();
-            var ele = dt.next();
-            if (ele.length > 0 && ele.get(0).tagName.toLowerCase() == 'dl') {
-                var display = ele.css('display');
+        $('aside li.dir').click(function(){
+            var dir = $(this);
+            var ul = dir.children();
+            if (ul.length > 0 && ul.get(0).tagName.toLowerCase() == 'ul') {
+                var display = ul.css('display');
                 if (display == "" || display == "none") {
-                    ele.slideDown('fast', function(){dt.removeClass('close');binder.initHeight();});
+                    ul.slideDown('fast', function(){dir.removeClass('close');binder.initHeight();});
                 } else {
-                    ele.slideUp('fast', function(){dt.addClass('close')});
+                    ul.slideUp('fast', function(){dir.addClass('close')});
                 }
             }
             return false;
         });
-        $('#sidebar dl dl').hide();
+        $('aside ul ul').hide();
         binder.initHighlight();
     },
     
     initHighlight: function(){
         var binder = this;
-        $('#sidebar dd').each(function(){
-            var dd = $(this);
-            var file = dd.data('file');
+        $('aside nav li a').each(function(){
+            var li = $(this).parent();
+            var a = $(this);
+            var file = a.attr('href');
             if (file && (binder.path == file || binder.path == encodeURI(file))) {
-                dd.addClass('highlight');
-                dd.parents('dl').show();
+                a.addClass('highlight');
+                li.parents('ul').show();
             } else {
-                dd.removeClass('highlight');
+                a.removeClass('highlight');
             }
         });
-        $('#sidebar dt').each(function(){
-            var dt = $(this);
-            var file = dt.data('file');
+        $('aside nav li.dir').each(function(){
+            var dir = $(this);
+            var file = dir.data('file');
             var fileEncode = encodeURI(file);
             var re = new RegExp('^' + file);
             var reEncode = new RegExp('^' + fileEncode);
             if (file && (binder.path.match(re) || binder.path.match(reEncode))) {
-                dt.removeClass('close');
+                dir.removeClass('close');
             }
         });
         binder.initHeight();

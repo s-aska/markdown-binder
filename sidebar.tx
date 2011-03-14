@@ -1,18 +1,26 @@
+<ul>
 [%- SET dep = 0 %]
 [%- SET cur_dep = 0 %]
+[%- SET last_type = '' %]
 [%- FOREACH file IN files %]
-[%- SET cur_dep = file.depth %]
+[%- SET cur_dep = file.depth - 1 %]
 [%- IF dep < cur_dep %]
-[%- '<dl>'.repeat(cur_dep - dep) | mark_raw %][% SET dep = cur_dep %]
+[%- ''.repeat(cur_dep - dep) | mark_raw %][% SET dep = cur_dep %]
 [%- ELSIF dep > cur_dep %]
-[%- '</dl>'.repeat(dep - cur_dep) | mark_raw %][% SET dep = cur_dep %]
+[%- '</ul></li>'.repeat(dep - cur_dep) | mark_raw %][% SET dep = cur_dep %]
+[%- ELSIF last_type == 'dir' %]
+</ul></li>
 [%- END %]
 [%- IF file.is_dir %]
-<dt class="close" data-depth="[% file.depth %]" data-file="[% file.stringify %]" data-basename="[% file.basename %]" data-dir="[% file.parent %]"><span>[% file.basename %]</span></dt>
+[%- SET last_type = 'dir' %]
+<li class="dir close" data-file="[% file.stringify %]">[% file.basename %]
+<ul>
 [%- ELSE %]
+[%- SET last_type = 'file' %]
 [%- SET path = file == '/TOP.txt' ? '/' : file.stringify.replace('.txt$', '') %]
 [%- SET basename = file.basename.replace('.txt$', '') %]
-<dd data-file="[% path %]" data-basename="[% basename %]" data-dir="[% file.dir %]"><a data-file="[% path %]" href="[% path %]">[% basename %]</a></dd>
+<li class="file"><a href="[% path %]">[% basename %]</a></li>
 [%- END %]
 [%- END %]
-[%- '</dl>'.repeat(dep) | mark_raw %]
+[%- '</ul></li>'.repeat(dep) | mark_raw %]
+</ul>
