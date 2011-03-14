@@ -133,14 +133,18 @@ my $app = sub {
         return $res_404;
     }
     
-    my $html = $cache_file->slurp;
+    my $html = decode('utf8', $cache_file->slurp);
+    
+    my $template = 'index.html';
+    
+    $template = 'iphone.html' if $req->user_agent=~/iPhone/;
     
     return
-        $render->($req, 'index.html', {
+        $render->($req, $template, {
             conf    => $conf,
             files   => \@files,
             content => $html,
-            path    => $req->path
+            path    => decode('utf8', $req->path)
         });
 };
 

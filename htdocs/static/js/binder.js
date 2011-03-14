@@ -3,12 +3,13 @@ function MarkdownBinder() {
 
 MarkdownBinder.prototype = {
 
-    expanded: true,
+    expanded: false,
     gone: false,
     path: false,
     basename: false,
     dir: false,
     dirs: [],
+    title: '',
 
     // util
     source: function() {
@@ -31,9 +32,6 @@ MarkdownBinder.prototype = {
     go: function(path, callback){
         if (history.pushState) {
             history.pushState(path, '', location.protocol + '//' + location.host + path);
-        }
-        if (this.editing) {
-            this.closeEditor();
         }
         this.load(path, callback);
     },
@@ -58,6 +56,8 @@ MarkdownBinder.prototype = {
                 binder.dir = match[1];
                 binder.basename = match[2];
                 binder.initPagelink();
+                binder.initHighlight();
+                $('title').text(binder.title + path.replace('/', ' - '));
                 if (callback) {
                     callback();
                 }
@@ -72,14 +72,12 @@ MarkdownBinder.prototype = {
     expand: function(){
         var binder = this;
         if (binder.expanded) {
-            $('#sidebar dl dl').each(function(){
-                $(this).hide();
-            });
+            $('#sidebar dl dl').hide();
+            $('#sidebar dt').addClass('close');
             binder.expanded = false;
         } else {
-            $('#sidebar dl dl').each(function(){
-                $(this).show();
-            });
+            $('#sidebar dl dl').show();
+            $('#sidebar dt').removeClass('close');
             binder.expanded = true;
             binder.initHeight();
         }
@@ -109,6 +107,7 @@ MarkdownBinder.prototype = {
         binder.initPagelink();
         binder.initDocument();
         binder.initHeight();
+        binder.title = $('#siteTitle').text();
     },
 
     initHeight: function(){
@@ -160,10 +159,12 @@ MarkdownBinder.prototype = {
                 return false;
             });
         });
-        $('#pages dt span').hover(function(){
+        $('#pages dt').hover(function(){
             $(this).css('cursor','pointer');
+            $(this).addClass('highlight');
         },function(){
             $(this).css('cursor','default');
+            $(this).removeClass('highlight');
         });
         
         $('#pages dt span').click(function(){
@@ -172,26 +173,39 @@ MarkdownBinder.prototype = {
             if (ele.length > 0 && ele.get(0).tagName.toLowerCase() == 'dl') {
                 var display = ele.css('display');
                 if (display == "" || display == "none") {
-                    ele.slideDown('fast');
+                    ele.slideDown('fast', function(){dt.removeClass('close');binder.initHeight();});
                 } else {
-                    ele.slideUp('fast');
+                    ele.slideUp('fast', function(){dt.addClass('close')});
                 }
             }
             return false;
         });
-        /*
-        $('#sidebar dl dl').each(function(){
-            $(this).hide();
-        });
+        $('#sidebar dl dl').hide();
+        binder.initHighlight();
+    },
+    
+    initHighlight: function(){
+        var binder = this;
         $('#sidebar dd').each(function(){
             var dd = $(this);
             var file = dd.data('file');
-            if (file && location.pathname == file) {
-                dd.parents('dl').each(function(){
-                    $(this).show();
-                });
+            if (file && (binder.path == file || binder.path == encodeURI(file))) {
+                dd.addClass('highlight');
+                dd.parents('dl').show();
+            } else {
+                dd.removeClass('highlight');
             }
         });
-        */
+        $('#sidebar dt').each(function(){
+            var dt = $(this);
+            var file = dt.data('file');
+            var fileEncode = encodeURI(file);
+            var re = new RegExp('^' + file);
+            var reEncode = new RegExp('^' + fileEncode);
+            if (file && (binder.path.match(re) || binder.path.match(reEncode))) {
+                dt.removeClass('close');
+            }
+        });
+        binder.initHeight();
     }
 }

@@ -1,0 +1,18 @@
+<html>
+<head>
+<title>[% conf.title %]</title>
+<meta name="viewport" content="width=320, initial-scale=1">
+<meta charset="utf-8">
+</head>
+<body>
+<h1 id="siteTitle">[% conf.title %]</h1>
+[% IF path == '/' %]
+<nav id="sidebar">
+<div id="pages">[% INCLUDE 'sidebar_iphone.tx' %]</div>
+</nav>
+[% ELSE %]
+[% content | mark_raw %]
+[% END %]
+<footer>[% conf.footer | mark_raw %]</footer>
+</body>
+</html>
