@@ -1,6 +1,6 @@
 # Markdown Binder
 
-Markdown Web Viwer
+Markdown Viewer
 
 [demo](http://doc.7kai.org)
 
@@ -9,13 +9,23 @@ Markdown Web Viwer
     git clone git@github.com:s-aska/app-markdown-binder-plack.git
     cd app-markdown-binder-plack
     cpanm Path::Class Text::Markdown Text::Xslate
+    vi config.json
     plackup -R doc
 
+## Edit Page
+
+    vi doc/TOP.txt
+    vi doc/Hoge.txt
+    mkdir doc/Foo
+    vi doc/Foo/Bar.txt
+
 ## Features
-1. Ajax Page Loading
-2. Support HTML5
-3. Support no js ( bot, curl )
-4. Pure Markdown, No Extend
+1. Pure Markdown ( not extend grammar )
+2. HTML5
+3. Plack Application
+4. Support Ajax Page Loading
+5. Support pushState
+6. Support no js ( bot, curl )
 
 ## SEE ALSO
 - PSGI/Plack: <http://plackperl.org/>
@@ -26,3 +36,4 @@ Markdown Web Viwer
 
 ## License
 Released under the [MIT license](http://creativecommons.org/licenses/MIT/).
+
