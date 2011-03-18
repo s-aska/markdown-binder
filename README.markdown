@@ -10,15 +10,17 @@ Markdown Viewer
     cd app-markdown-binder-plack
     cpanm Path::Class Text::Markdown Text::Xslate
 
-## Run
+## How to use
+
+### Run
 
     plackup -R doc
 
-## Customize title and footer
+### Customize title and footer
 
     vi config.json
 
-## Edit page
+### Edit page
 
     vi doc/TOP.txt
     vi doc/Hoge.txt
