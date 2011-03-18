@@ -1,26 +1,3 @@
-# Markdown Binder
+# TOP
 
-このドキュメントは Markdown Binder というオープンソースのドキュメントリーダーで作られています。
-
-[概要](/Product/MarkdownBinder/0.概要)
-
-## Tips
-
-どんなページがあるのか全部開いてみるには expand をクリックします。
-
-expand して下の方のページをクリックすると上にコンテンツが出て見辛いですが、リロードしてみて下さい、余計なナビが畳まれます。
-
-## social link
-
-<div style="float: left;" class="clearfix">
-<div id="tweet"><a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-lang="ja">Tweet</a></div>
-</div>
-<div id="facebook"></div>
-</div>
-
-<script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
-<script>
-var url = location.protocol + '//' + location.host + location.pathname;
-var html = '<iframe src="http://www.facebook.com/plugins/like.php?href=' + url + '&amp;layout=button_count&amp;show_faces=true&amp;width=80&amp;action=like&amp;font&amp;colorscheme=light&amp;height=21" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:80px; height:21px;" allowTransparency="true"></iframe>';
-document.getElementById('facebook').innerHTML = html;
-</script>
+... please edit this page ...
