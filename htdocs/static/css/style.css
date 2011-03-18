@@ -168,7 +168,7 @@ aside {
 aside nav #expand {
     position:absolute;
     right:0px;
-    display:block;
+    display:none;
 }
 
 aside nav .close {

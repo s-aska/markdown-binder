@@ -109,6 +109,7 @@ MarkdownBinder.prototype = {
             $(this).css('cursor','default');
             $(this).removeClass('highlight');
         });
+        $('#expand').show();
 
         // init 
         binder.path = location.pathname;
@@ -155,7 +156,7 @@ MarkdownBinder.prototype = {
 
     initSidebar: function(){
         var binder = this;
-        $('aside').find('a').each(function(){
+        $('aside li.file a').each(function(){
             var a = $(this);
             a.bind('click', function(){
                 binder.go(a.attr('href'));
@@ -184,6 +185,7 @@ MarkdownBinder.prototype = {
             return false;
         });
         $('aside ul ul').hide();
+        $('aside ul li.dir').addClass('close');
         binder.initHighlight();
     },
     

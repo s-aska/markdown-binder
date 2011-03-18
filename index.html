@@ -27,14 +27,14 @@ body {text-align:center;}
 <div id="wrapper" class="clearfix">
 <aside>
 <nav>
-<span id="expand" class="close">expand</span>
+<span id="expand" class="close" title="side menu all expand.">all expand</span>
 [% INCLUDE 'sidebar.tx' %]
 </nav>
 </aside>
 <article>
 <nav>
-<a href="[% path %]" id="permalink">permalink</a> | 
-<a href="[% path %].txt" id="source" target="_blank">source</a>
+<a href="[% path %]" id="permalink" title="this page url.">permalink</a> | 
+<a href="[% path %].txt" id="source" target="_blank" title="this page source text.">source</a>
 </nav>
 <section>
 [% content | mark_raw %]

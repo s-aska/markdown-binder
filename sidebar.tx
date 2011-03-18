@@ -12,7 +12,7 @@
 [%- SET dep = cur_dep %]
 [%- IF file.is_dir %]
 [%- SET last_type = 'dir' %]
-<li class="dir close" data-file="[% file.stringify %]">[% file.basename %]<ul>
+<li class="dir" data-file="[% file.stringify %]">[% file.basename %]<ul>
 [%- ELSE %]
 [%- SET last_type = 'file' %]
 [%- SET path = file == '/TOP.txt' ? '/' : file.stringify.replace('.txt$', '') %]
