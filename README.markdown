@@ -4,13 +4,16 @@ Markdown Viewer
 
 [demo](http://doc.7kai.org)
 
-## INSTALL
+## Install and Run
 
     git clone git@github.com:s-aska/app-markdown-binder-plack.git
     cd app-markdown-binder-plack
     cpanm Path::Class Text::Markdown Text::Xslate
-    vi config.json
     plackup -R doc
+
+## Customize Title and Footer
+
+    vi config.json
 
 ## Edit Page
 
@@ -27,7 +30,7 @@ Markdown Viewer
 5. Support pushState
 6. Support no js ( bot, curl )
 
-## SEE ALSO
+## See Also
 - PSGI/Plack: <http://plackperl.org/>
 - The Plack wiki: <https://github.com/miyagawa/Plack/wiki>
 - The Plack FAQ: <https://github.com/miyagawa/Plack/wiki/Faq>
