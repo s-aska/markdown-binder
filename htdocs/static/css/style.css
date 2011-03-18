@@ -228,7 +228,7 @@ article {
 article p {
     margin:1em 0;
     line-height:1.9;
-    letter-spacing:0.02em;
+    letter-spacing:1px;
 }
 
 /* Headers */
@@ -294,7 +294,7 @@ article ol p {
     margin:0;
 }
 article li {
-    letter-spacing:1px;
+/*    letter-spacing:1px;*/
 }
 
 /* Emphasis */

@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <title>[% conf.title %][% IF path.length() > 1 %] - [% path.replace('^/', '') %][% END %]</title>
 <link rel="stylesheet" type="text/css" href="/static/css/style.css" media="all" />
-<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Crimson+Text">
 <link href='http://fonts.googleapis.com/css?family=Raleway:100' rel='stylesheet' type='text/css'>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
 <script type="text/javascript" src="/static/js/binder.js"></script>
@@ -14,6 +13,7 @@ $(document).ready(function() {
     binder.initApplication();
 });
 </script>
+[%- IF req.user_agent().match('MSIE') %]
 <!--[if IE]>
 <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
 <style>
@@ -21,6 +21,7 @@ body {text-align:center;}
 #wrapper {margin:0 auto;text-align:left;}
 </style>
 <![endif]-->
+[%- END %]
 </head>
 <body>
 <header><h1>[% conf.title %]</h1></header>

@@ -143,6 +143,7 @@ my $app = sub {
     
     return
         $render->($req, $template, {
+            req     => $req,
             conf    => $conf,
             files   => \@files,
             content => $html,

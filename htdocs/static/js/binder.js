@@ -57,7 +57,11 @@ MarkdownBinder.prototype = {
                 binder.basename = match[2];
                 binder.initPagelink();
                 binder.initHighlight();
-                $('title').text(binder.title + path.replace('/', ' - '));
+                if (path == '/') {
+                    $('title').text(binder.title);
+                } else {
+                    $('title').text(binder.title + url.replace('/', ' - '));
+                }
                 if (callback) {
                     callback();
                 }
@@ -76,6 +80,7 @@ MarkdownBinder.prototype = {
             $('aside nav li.dir').addClass('close');
             $('#expand').addClass('close');
             binder.expanded = false;
+            binder.initHighlight();
         } else {
             $('aside nav ul ul').show();
             $('aside nav li.dir').removeClass('close');
