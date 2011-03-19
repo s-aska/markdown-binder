@@ -1,8 +1,6 @@
 # Markdown Binder
 
-Markdown + Plack + HTML5 + Ajax = Markdown Binder
-
-Markdown Binder is ajax markdown viewer written in Perl and Javascript.
+Ajax Markdown Viewer written in Perl.
 
 - demo: [The Document of Aska](http://doc.7kai.org)
 - source: [github](https://github.com/s-aska/app-markdown-binder-plack)
