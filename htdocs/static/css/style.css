@@ -145,6 +145,8 @@ body {
     height:auto;
 }
 
+/* header */
+
 header h1 {
     margin-bottom:0px;
     padding-bottom:20px;
@@ -155,6 +157,16 @@ header h1 {
     text-align:center;
 }
 
+/* footer */
+
+footer {
+    padding:20px 0;
+    border-top:1px solid #ccc;
+    text-align:center;
+}
+
+/* sidebar */
+
 aside {
     margin-right: 20px;
     padding:20px 0px;
@@ -164,22 +176,18 @@ aside {
     height:auto;
     font-size:110%;
 }
-
 aside nav #expand {
     position:absolute;
     right:0px;
     display:none;
 }
-
-aside nav .close {
-    color:#cccccc;
-}
-
 aside nav ul {
     list-style: none;
 }
+aside nav ul ul {
+    padding-left:10px;
+}
 aside nav li.dir {
-    /*font-size:110%;*/
 }
 aside nav li.close {
     color:#cccccc;
@@ -187,24 +195,14 @@ aside nav li.close {
 aside nav li.highlight {
     color:#666666;
 }
-aside nav ul ul {
-    padding-left:10px;
-}
-aside nav li {
-    /*font-weight:normal;*/
+aside nav li a {
+    display:block;
 }
 aside nav li a.highlight {
     background-color:#ffffdc;
 }
-aside nav li a {
-    display:block;
-}
 
-footer {
-    padding:20px 0;
-    border-top:1px solid #ccc;
-    text-align:center;
-}
+/* contents */
 
 article {
     padding:20px;
@@ -214,13 +212,16 @@ article {
     position:relative;
 }
 
+/* permalink and source */
+
 article nav {
     position:absolute;
     right:0;
     text-align:right;
 }
 
-/* Paragraphs */
+/* paragraphs */
+
 article {
     font-size:110%;
 }
@@ -231,7 +232,8 @@ article p {
     letter-spacing:1px;
 }
 
-/* Headers */
+/* headers */
+
 article h1 {
     margin:0 0 0.5em 0;
     font-size:160%;
@@ -248,8 +250,8 @@ article h3 {
     font-size:120%;
 }
 
+/* blockquotes */
 
-/* Blockquotes */
 article blockquote {
     margin:10px 10px 20px 10px;
     padding-left:10px;
@@ -260,7 +262,8 @@ article blockquote p {
     padding:1em 0.5em;
 }
 
-/* Code Blocks */
+/* code blocks */
+
 article code {
     padding:2px;
     border-bottom:1px dotted #999999;
@@ -279,7 +282,8 @@ article pre code {
     font-size: 85%;
 }
 
-/* Lists */
+/* lists */
+
 article ul,
 article ol {
     margin-bottom:16px;
@@ -294,10 +298,10 @@ article ol p {
     margin:0;
 }
 article li {
-/*    letter-spacing:1px;*/
 }
 
-/* Emphasis */
+/* emphasis */
+
 article em {
     font-style:normal;
     font-weight:bold;

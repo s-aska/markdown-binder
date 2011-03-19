@@ -1,6 +1,6 @@
 # Markdown Binder
 
-Markdown + Plack + jQuery + HTML5 = Markdown Binder
+Markdown + Plack + HTML5 + Ajax = Markdown Binder
 
 - demo: [The Document of Aska](http://doc.7kai.org)
 - source: [github](https://github.com/s-aska/app-markdown-binder-plack)
