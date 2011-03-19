@@ -17,7 +17,7 @@ my $cache_dir    = dir($ENV{'MARKDOWN_BINDER_CACHE'} || catdir($base_dir, 'cache
 my $pass_file    = file($ENV{'MARKDOWN_BINDER_PW'} || catfile($base_dir, '.password'));
 my $conf_file    = file($ENV{'MARKDOWN_BINDER_CONF'} || catfile($base_dir, 'config.json'));
 my $top          = $ENV{'MARKDOWN_BINDER_TOP'} || 'TOP';
-my $suffix       = '.txt';
+my $suffix       = '.md';
 my $toppage      = $top . $suffix;
 
 my $default_conf = {
@@ -76,7 +76,7 @@ my $rebuild = sub {
                 my $html = Text::Markdown->new->markdown($text);
                 $html=~s|>\n{2,}<|>\n<|g;
                 $html=~s|\n$||;
-                my $cache_file = file($cache_dir, substr($path, 0, -4) . '.html');
+                my $cache_file = file($cache_dir, substr($path, 0, -3) . '.html');
                 if (!-f $cache_file or ($cache_file->stat->mtime <= $file->stat->mtime)) {
                     $cache_file->dir->mkpath unless -d $cache_file->dir;
                     my $fh = $cache_file->openw;
@@ -129,7 +129,7 @@ my $app = sub {
        $file.= $top if $file eq '/';
     
     my $cache_file = file($cache_dir, $file . '.html');
-    my $text_file = file($doc_dir, $file . '.txt');
+    my $text_file = file($doc_dir, $file . $suffix);
     
     if (!-f $cache_file) {
         return $res_404;
@@ -157,7 +157,7 @@ builder {
     enable 'Static',
         path => qr!\.html$!, root => $cache_dir;
     enable 'Static',
-        path => qr!\.txt$!, root => $doc_dir;
+        path => qr!\.(txt|md)$!, root => $doc_dir;
 #    enable 'XForwardedFor',
 #        trust => [qw(127.0.0.1/8)];
     $app;

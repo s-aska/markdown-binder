@@ -14,9 +14,9 @@ MarkdownBinder.prototype = {
     // util
     source: function() {
         if (this.path == '/') {
-            return '/TOP.txt';
+            return '/TOP.md';
         } else {
-            return this.path + '.txt';
+            return this.path + '.md';
         }
     },
 

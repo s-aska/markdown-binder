@@ -24,28 +24,10 @@ Markdown + Plack + jQuery + HTML5 = Markdown Binder
 
 ### Edit page
 
-    vi doc/TOP.txt
-    vi doc/Hoge.txt
+    vi doc/TOP.md
+    vi doc/Hoge.md
     mkdir doc/Foo
-    vi doc/Foo/Bar.txt
-
-## Directory
-
-    ├── app.psgi    ... server side program
-    ├── config.json ... title and footer
-    ├── index.html  ... template
-    ├── iphone.html ... iPhone's template
-    ├── sidebar.tx  ... side bar template
-    ├── doc         ... document directory
-    │   └── TOP.txt ... top page
-    └── htdocs
-        ├── favicon.ico
-        ├── robots.txt
-        └── static
-            ├── css
-            │   └── style.css ... style sheet
-            └── js
-                └── binder.js ... client side program
+    vi doc/Foo/Bar.md
 
 ## Features
 1. Pure Markdown ( not extend grammar )

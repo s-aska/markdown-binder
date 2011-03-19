@@ -15,8 +15,8 @@
 <li class="dir" data-file="[% file.stringify %]">[% file.basename %]<ul>
 [%- ELSE %]
 [%- SET last_type = 'file' %]
-[%- SET path = file == '/TOP.txt' ? '/' : file.stringify.replace('.txt$', '') %]
-[%- SET basename = file.basename.replace('.txt$', '') %]
+[%- SET path = file == '/TOP.md' ? '/' : file.stringify.replace('.md$', '') %]
+[%- SET basename = file.basename.replace('.md$', '') %]
 <li class="file"><a href="[% path %]">[% basename %]</a></li>
 [%- END %]
 [%- END %]
