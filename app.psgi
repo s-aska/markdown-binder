@@ -14,7 +14,7 @@ use Text::Xslate;
 my $base_dir     = dirname(__FILE__);
 my $doc_dir      = dir($ENV{'MARKDOWN_BINDER_DOC'} || catdir($base_dir, 'doc'))->absolute;
 my $cache_dir    = dir($ENV{'MARKDOWN_BINDER_CACHE'} || catdir($base_dir, 'cache'))->absolute;
-my $pass_file    = file($ENV{'MARKDOWN_BINDER_PW'} || catfile($base_dir, '.password'));
+my $htpasswd     = file($ENV{'MARKDOWN_BINDER_PW'} || catfile($base_dir, '.htpasswd'));
 my $conf_file    = file($ENV{'MARKDOWN_BINDER_CONF'} || catfile($base_dir, 'config.json'));
 my $top          = $ENV{'MARKDOWN_BINDER_TOP'} || 'TOP';
 my $suffix       = '.md';
@@ -158,6 +158,9 @@ builder {
         path => qr!\.html$!, root => $cache_dir;
     enable 'Static',
         path => qr!\.(txt|md)$!, root => $doc_dir;
+    if (-f $htpasswd) {
+        enable 'Auth::Htpasswd', file => $htpasswd;
+    }
 #    enable 'XForwardedFor',
 #        trust => [qw(127.0.0.1/8)];
     $app;
