@@ -6,6 +6,14 @@ Ajax Markdown Viewer written in Perl, to run under Plack.
 - source: [github](https://github.com/s-aska/app-markdown-binder-plack)
 - author: [@su_aska](http://twitter.com/su_aska)
 
+## Features
+1. Pure Markdown ( not extend grammar )
+2. Plack Application
+3. HTML5
+4. Ajax Page Loading
+5. pushState Support
+6. no javascript Support ( bot, curl, wget...etc )
+
 ## Install
 
     git clone git@github.com:s-aska/app-markdown-binder-plack.git
@@ -33,14 +41,6 @@ Ajax Markdown Viewer written in Perl, to run under Plack.
 
     cpanm Plack::Middleware::Auth::Htpasswd
     htpasswd -c .htpasswd username
-
-## Features
-1. Pure Markdown ( not extend grammar )
-2. HTML5
-3. Plack Application
-4. Support Ajax Page Loading
-5. Support pushState
-6. Support no js ( bot, curl )
 
 ## See also
 - PSGI/Plack: <http://plackperl.org/>
