@@ -1,8 +1,10 @@
 # Markdown Binder
 
-Markdown Viewer
+Markdown + Plack + jQuery + HTML5 = Markdown Binder
 
-[demo](http://doc.7kai.org)
+- demo: [The Document of Aska](http://doc.7kai.org)
+- source: [github](https://github.com/s-aska/app-markdown-binder-plack)
+- author: [@su_aska](http://twitter.com/su_aska)
 
 ## Install
 
@@ -44,6 +46,7 @@ Markdown Viewer
             │   └── style.css ... style sheet
             └── js
                 └── binder.js ... client side program
+
 ## Features
 1. Pure Markdown ( not extend grammar )
 2. HTML5
