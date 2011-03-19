@@ -27,6 +27,23 @@ Markdown Viewer
     mkdir doc/Foo
     vi doc/Foo/Bar.txt
 
+## Directory
+
+    ├── app.psgi    ... server side program
+    ├── config.json ... title and footer
+    ├── index.html  ... template
+    ├── iphone.html ... iPhone's template
+    ├── sidebar.tx  ... side bar template
+    ├── doc
+    │   └── TOP.txt ... Top page
+    └── htdocs
+        ├── favicon.ico
+        ├── robots.txt
+        └── static
+            ├── css
+            │   └── style.css ... style sheet
+            └── js
+                └── binder.js ... client side program
 ## Features
 1. Pure Markdown ( not extend grammar )
 2. HTML5
