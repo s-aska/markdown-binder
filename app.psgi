@@ -16,16 +16,11 @@ my $doc_dir      = dir($ENV{'MARKDOWN_BINDER_DOC'} || catdir($base_dir, 'doc'))-
 my $cache_dir    = dir($ENV{'MARKDOWN_BINDER_CACHE'} || catdir($base_dir, 'cache'))->absolute;
 my $htpasswd     = file($ENV{'MARKDOWN_BINDER_PW'} || catfile($base_dir, '.htpasswd'));
 my $conf_file    = file($ENV{'MARKDOWN_BINDER_CONF'} || catfile($base_dir, 'config.json'));
-my $top          = $ENV{'MARKDOWN_BINDER_TOP'} || 'TOP';
+my $top          = 'TOP';
 my $suffix       = '.md';
 my $toppage      = $top . $suffix;
 
-my $default_conf = {
-    title => 'no title',
-    footer => 'copyright'
-};
-
-my $conf = -f $conf_file ? decode_json($conf_file->slurp) : $default_conf;
+my $conf = decode_json($conf_file->slurp);
 
 # override Path::Class method
 no strict 'refs';
@@ -54,110 +49,122 @@ no strict 'refs';
 };
 
 my @files;
+my $doc_dir_regexp = quotemeta $doc_dir;
+my $cache_dir_regexp = quotemeta $cache_dir;
+my $suffix_regexp = quotemeta $suffix;
 my $rebuild = sub {
-    my $cache_clean = shift;
     @files = ();
-    if ($cache_clean) {
-        $cache_dir->rmtree if -d $cache_dir;
-        $cache_dir->mkpath;
-    }
     $doc_dir->recurse(
         preorder => 1,
         depthfirst => 1,
         callback => sub {
-            my $file = shift;
-            my $path = decode('utf8', $file);
-            $path=~s|^$doc_dir||;
-            return if substr(file($path)->basename, 0, 1) eq '.';
-            return unless length $path;
-            if (-f $file && $file=~/$suffix$/) {
-                $path = file($path);
-                my $text = $file->slurp;
+            my $path = shift;
+            my ($file) = decode('utf8', $path)=~m|^$doc_dir_regexp(.*)$|;
+            return if substr(basename($path), 0, 1) eq '.';
+            return unless length $file;
+            if (-f $path and $file=~m|^(.*)$suffix_regexp$|) {
+                $file = file($file);
+                my $cache = file($cache_dir, $1 . '.html');
+                my $text = $path->slurp;
                 my $html = Text::Markdown->new->markdown($text);
                 $html=~s|>\n{2,}<|>\n<|g;
                 $html=~s|\n$||;
-                my $cache_file = file($cache_dir, substr($path, 0, -3) . '.html');
-                if (!-f $cache_file or ($cache_file->stat->mtime <= $file->stat->mtime)) {
-                    $cache_file->dir->mkpath unless -d $cache_file->dir;
-                    my $fh = $cache_file->openw;
+                if (!-f $cache or ($cache->stat->mtime <= $path->stat->mtime)) {
+                    $cache->dir->mkpath unless -d $cache->dir;
+                    my $fh = $cache->openw;
                     $fh->print($html);
                     $fh->close;
                     warn 'create cached ', $path;
                 } else {
                     warn 'find cached ', $path;
                 }
-            } elsif (-d $file) {
-                $path = dir($path);
-                warn 'find dir ', $path;
+            } elsif (-d $path) {
+                $file = dir($file);
+                warn 'find dir ', $file;
+            } else {
+                warn $path;
             }
-            push @files, $path;
+            push @files, $file;
         }
     );
+    my @dusts;
+    $cache_dir->recurse(
+        callback => sub {
+            my $cache = shift;
+            return if (!-f $cache) and (!-d $cache);
+            my ($file) = decode('utf8', $cache)=~m|^$cache_dir_regexp(.*)$|;
+            if (-f $cache and $file=~m|^(.*)\.html$|) {
+                my $path = file($doc_dir, $1 . $suffix);
+                return if -f $path;
+            } elsif (-d $cache) {
+                my $path = dir($doc_dir, $file);
+                return if -d $path;
+            }
+            push @dusts, $cache;
+        }
+    );
+    for my $dust (@dusts) {
+        if (-f $dust) {
+            $dust->remove;
+            warn "remove cached $dust";
+        } elsif (-d $dust) {
+            $dust->rmtree;
+            warn "rmtree cached $dust";
+        }
+    }
 };
 $rebuild->();
 
-my $res_200 = [ 200, [ 'Content-Type' => 'text/html' ], [ '' ] ];
 my $res_403 = [ 403, [ 'Content-Type' => 'text/html' ], [ '403 Forbidden.' ] ];
 my $res_404 = [ 404, [ 'Content-Type' => 'text/html' ], [ '404 Not Found.' ] ];
 
-my $check_path = sub {
-    return 1 if grep($_ eq '..', split('/', shift));
-    return ;
-};
+my $app = sub {
+    my $req = Plack::Request->new(shift);
+    
+    return $res_403 if grep($req->path eq '..', split('/', shift));
 
-my $render = sub {
-    my ($req, $path, $params) = @_;
+    my $file = $req->path eq '/' ? '/' . $top : $req->path;
+    
+    my $cache_file = file($cache_dir, $file . '.html');
+    
+    return $res_404 unless -f $cache_file;
+    
+    my $html = decode('utf8', $cache_file->slurp);
+    
+    my $is_iphone = $req->user_agent=~/iPhone/ ? 1 : 0;
+    
+    my $template = $is_iphone ? 'iphone.html' : 'index.html';
+    
     my $tx = Text::Xslate->new(
         path   => './',
         module => ['Text::Xslate::Bridge::TT2Like'],
         syntax => 'TTerse'
     );
-    my $content = $tx->render($path, $params);
+    
+    my $content = $tx->render($template, {
+        req       => $req,
+        conf      => $conf,
+        files     => \@files,
+        content   => $html,
+        path      => decode('utf8', $req->path),
+        is_iphone => $is_iphone
+    });
+    
     my $res = $req->new_response(200);
     $res->content_type('text/html; charset=UTF-8');
     $res->body(encode('utf8', $content));
-    return $res->finalize;
-};
-
-my $app = sub {
-    my $req = Plack::Request->new(shift);
-    
-    # check path
-    return $res_403 if $check_path->($req->path);
-
-    my $file = $req->path;
-       $file.= $top if $file eq '/';
-    
-    my $cache_file = file($cache_dir, $file . '.html');
-    my $text_file = file($doc_dir, $file . $suffix);
-    
-    if (!-f $cache_file) {
-        return $res_404;
-    }
-    
-    my $html = decode('utf8', $cache_file->slurp);
-    
-    my $template = 'index.html';
-    
-    $template = 'iphone.html' if $req->user_agent=~/iPhone/;
-    
-    return
-        $render->($req, $template, {
-            req     => $req,
-            conf    => $conf,
-            files   => \@files,
-            content => $html,
-            path    => decode('utf8', $req->path)
-        });
+    $res->finalize;
 };
 
 builder {
     enable 'Static',
-        path => qr!^/static|^(/favicon.ico|/robots.txt)$!, root => './htdocs/';
+        path => qr!^/static/!, root => './htdocs/';
+    enable 'Static',
+        path => qr!^/(?:favicon.ico|robots.txt)$!, root => './htdocs/';
     enable 'Static',
         path => qr!\.html$!, root => $cache_dir;
     enable 'Static',
-        path => qr!\.(txt|md)$!, root => $doc_dir;
+        path => qr!$suffix$!, root => $doc_dir;
     if (-f $htpasswd) {
         enable 'Auth::Htpasswd', file => $htpasswd;
     }

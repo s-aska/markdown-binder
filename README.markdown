@@ -37,7 +37,7 @@ Ajax Markdown Viewer written in Perl, to run under Plack.
     mkdir doc/Foo
     vi doc/Foo/Bar.md
 
-### Basic Authentication
+### Private ( Basic Auth )
 
     cpanm Plack::Middleware::Auth::Htpasswd
     htpasswd -c .htpasswd username
