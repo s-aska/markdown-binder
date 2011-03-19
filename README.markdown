@@ -2,6 +2,8 @@
 
 Markdown + Plack + HTML5 + Ajax = Markdown Binder
 
+Markdown Binder is easy to use web content management system written in Perl.
+
 - demo: [The Document of Aska](http://doc.7kai.org)
 - source: [github](https://github.com/s-aska/app-markdown-binder-plack)
 - author: [@su_aska](http://twitter.com/su_aska)
@@ -28,6 +30,11 @@ Markdown + Plack + HTML5 + Ajax = Markdown Binder
     vi doc/Hoge.md
     mkdir doc/Foo
     vi doc/Foo/Bar.md
+
+### Basic Authentication
+
+    cpanm Plack::Middleware::Auth::Htpasswd
+    htpasswd -c .htpasswd username
 
 ## Features
 1. Pure Markdown ( not extend grammar )
