@@ -1,6 +1,6 @@
 # Markdown Binder
 
-Ajax Markdown Viewer written in Perl(PSGI/Plack).
+Ajax Markdown Viewer written in Perl, to run under Plack.
 
 - demo: [The Document of Aska](http://doc.7kai.org)
 - source: [github](https://github.com/s-aska/app-markdown-binder-plack)
