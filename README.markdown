@@ -34,8 +34,8 @@ Markdown Viewer
     ├── index.html  ... template
     ├── iphone.html ... iPhone's template
     ├── sidebar.tx  ... side bar template
-    ├── doc
-    │   └── TOP.txt ... Top page
+    ├── doc         ... document directory
+    │   └── TOP.txt ... top page
     └── htdocs
         ├── favicon.ico
         ├── robots.txt
