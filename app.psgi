@@ -94,11 +94,9 @@ my $rebuild = sub {
             return if (!-f $cache) and (!-d $cache);
             my ($file) = decode('utf8', $cache)=~m|^$cache_dir_regexp(.*)$|;
             if (-f $cache and $file=~m|^(.*)\.html$|) {
-                my $path = file($doc_dir, $1 . $suffix);
-                return if -f $path;
+                return if -f file($doc_dir, $1 . $suffix);
             } elsif (-d $cache) {
-                my $path = dir($doc_dir, $file);
-                return if -d $path;
+                return if -d dir($doc_dir, $file);
             }
             push @dusts, $cache;
         }
@@ -118,41 +116,35 @@ $rebuild->();
 my $res_403 = [ 403, [ 'Content-Type' => 'text/html' ], [ '403 Forbidden.' ] ];
 my $res_404 = [ 404, [ 'Content-Type' => 'text/html' ], [ '404 Not Found.' ] ];
 
+my $tx = Text::Xslate->new(
+    path   => './',
+    module => ['Text::Xslate::Bridge::TT2Like'],
+    syntax => 'TTerse'
+);
+
 my $app = sub {
     my $req = Plack::Request->new(shift);
     
-    return $res_403 if grep($req->path eq '..', split('/', shift));
-
-    my $file = $req->path eq '/' ? '/' . $top : $req->path;
-    
-    my $cache_file = file($cache_dir, $file . '.html');
-    
-    return $res_404 unless -f $cache_file;
-    
-    my $html = decode('utf8', $cache_file->slurp);
+    my $cache = $req->path eq '/'
+              ? file($cache_dir, $top . '.html')
+              : file($cache_dir, $req->path . '.html');
+    return $res_403 if grep($_ eq '..', split('/', $req->path));
+    return $res_404 unless -f $cache;
     
     my $is_iphone = $req->user_agent=~/iPhone/ ? 1 : 0;
-    
     my $template = $is_iphone ? 'iphone.html' : 'index.html';
-    
-    my $tx = Text::Xslate->new(
-        path   => './',
-        module => ['Text::Xslate::Bridge::TT2Like'],
-        syntax => 'TTerse'
-    );
-    
-    my $content = $tx->render($template, {
+    my $body = $tx->render($template, {
         req       => $req,
         conf      => $conf,
         files     => \@files,
-        content   => $html,
+        content   => decode('utf8', $cache->slurp),
         path      => decode('utf8', $req->path),
         is_iphone => $is_iphone
     });
     
     my $res = $req->new_response(200);
     $res->content_type('text/html; charset=UTF-8');
-    $res->body(encode('utf8', $content));
+    $res->body(encode('utf8', $body));
     $res->finalize;
 };
 
