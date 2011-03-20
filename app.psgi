@@ -1,5 +1,6 @@
 
 use strict;
+use Cwd 'abs_path';
 use Encode;
 use File::Basename;
 use File::Copy;
@@ -13,16 +14,15 @@ use Text::Markdown;
 use Text::Xslate;
 
 my $base_dir     = dirname(__FILE__);
-my $doc_dir      = dir($ENV{'MARKDOWN_BINDER_DOC'} || catdir($base_dir, 'doc'))->absolute;
-my $cache_dir    = dir($ENV{'MARKDOWN_BINDER_CACHE'} || catdir($base_dir, 'cache'))->absolute;
+my $doc_dir      = dir(abs_path($ENV{'MARKDOWN_BINDER_DOC'} || catdir($base_dir, 'doc')));
+my $cache_dir    = dir(abs_path($ENV{'MARKDOWN_BINDER_CACHE'} || catdir($base_dir, 'cache')));
 my $htpasswd     = file($ENV{'MARKDOWN_BINDER_PW'} || catfile($base_dir, '.htpasswd'));
+my $iprules      = file($ENV{'MARKDOWN_BINDER_IP'} || catfile($base_dir, '.iprules'));
 my $conf_file    = file($ENV{'MARKDOWN_BINDER_CONF'} || catfile($base_dir, 'config.json'));
 my $top          = 'TOP';
 my $suffix       = '.md';
 my $toppage      = $top . $suffix;
 my $suffix_ptn = quotemeta $suffix;
-
-my $conf = decode_json($conf_file->slurp);
 
 my $res_403 = [ 403, [ 'Content-Type' => 'text/html' ], [ '403 Forbidden.' ] ];
 my $res_404 = [ 404, [ 'Content-Type' => 'text/html' ], [ '404 Not Found.' ] ];
@@ -42,6 +42,7 @@ my $app = sub {
     return $res_403 if grep($_ eq '..', split('/', $req->path));
     return $res_404 unless -f catfile($cache_dir, $file);
     
+    my $conf = decode_json($conf_file->slurp);
     my $is_iphone = $req->user_agent=~/iPhone/ ? 1 : 0;
     my $template = $is_iphone ? 'iphone.html' : 'index.html';
     my $body = $tx->render($template, {
@@ -67,11 +68,16 @@ builder {
         path => qr!\.html$!, root => $cache_dir;
     enable 'Static',
         path => qr!$suffix$!, root => $doc_dir;
+    if ($ENV{REVERSEPROXY}) {
+        enable 'XForwardedFor', trust => [qw(127.0.0.1/8)];
+    }
     if (-f $htpasswd) {
         enable 'Auth::Htpasswd', file => $htpasswd;
     }
-    if ($conf->{reverseproxy}) {
-        enable 'XForwardedFor', trust => [qw(127.0.0.1/8)];
+    if (-f $iprules) {
+        enable 'IPAddressFilter', rules => [
+            grep /\./, split "\n", $iprules->slurp
+        ];
     }
     $app;
 };
@@ -184,7 +190,7 @@ sub watch {
     while (1) {
         my $watcher = Filesys::Notify::Simple->new([$doc_dir]);
         $watcher->wait(sub {
-            my $update = 0;
+            my $update;
             for my $event (@_) {
                 if (-f $event->{path}) {
                     $update = 1 if $create_cache->(file($event->{path}));
