@@ -60,14 +60,6 @@ my $app = sub {
 };
 
 builder {
-    enable 'Static',
-        path => qr!^/static/!, root => './htdocs/';
-    enable 'Static',
-        path => qr!^/(?:favicon.ico|robots.txt)$!, root => './htdocs/';
-    enable 'Static',
-        path => qr!\.html$!, root => $cache_dir;
-    enable 'Static',
-        path => qr!$suffix$!, root => $doc_dir;
     if ($ENV{REVERSEPROXY}) {
         enable 'XForwardedFor', trust => [qw(127.0.0.1/8)];
     }
@@ -79,6 +71,14 @@ builder {
             grep /\./, split "\n", $iprules->slurp
         ];
     }
+    enable 'Static',
+        path => qr!^/static/!, root => './htdocs/';
+    enable 'Static',
+        path => qr!^/(?:favicon.ico|robots.txt)$!, root => './htdocs/';
+    enable 'Static',
+        path => qr!\.html$!, root => $cache_dir;
+    enable 'Static',
+        path => qr!$suffix$!, root => $doc_dir;
     $app;
 };
 
