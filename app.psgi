@@ -3,7 +3,8 @@ use strict;
 use Encode;
 use File::Basename;
 use File::Copy;
-use File::Spec::Functions;
+use File::Spec::Functions qw(abs2rel catdir catfile);
+use Filesys::Notify::Simple;
 use JSON;
 use Path::Class;
 use Plack::Builder;
@@ -19,125 +20,34 @@ my $conf_file    = file($ENV{'MARKDOWN_BINDER_CONF'} || catfile($base_dir, 'conf
 my $top          = 'TOP';
 my $suffix       = '.md';
 my $toppage      = $top . $suffix;
+my $suffix_ptn = quotemeta $suffix;
 
 my $conf = decode_json($conf_file->slurp);
-
-# override Path::Class method
-no strict 'refs';
-*{'Path::Class::Entity::depth'} = sub {
-  my ($self) = @_;
-  scalar( () = $self=~/(\/)/g );
-};
-*{'Path::Class::Dir::children'} = sub {
-  my ($self, %opts) = @_;
-  
-  my $dh = $self->open or Carp::croak( "Can't open directory $self: $!" );
-  
-  my @out;
-  while (defined(my $entry = $dh->read)) {
-    next if !$opts{all} && $self->_is_local_dot_dir($entry);
-    next if ($opts{no_hidden} && $entry =~ /^\./);
-    push @out, $self->file($entry);
-    $out[-1] = $self->subdir($entry) if -d $out[-1];
-  }
-  return sort {
-    return $a->is_dir <=> $b->is_dir if $a->is_dir != $b->is_dir;
-    return ($b->basename eq $toppage) <=> ($a->basename eq $toppage)
-        if $a->basename eq $toppage or $b->basename eq $toppage;
-    return $a cmp $b;
-  } @out;
-};
-
-my @files;
-my $doc_dir_regexp = quotemeta $doc_dir;
-my $cache_dir_regexp = quotemeta $cache_dir;
-my $suffix_regexp = quotemeta $suffix;
-my $rebuild = sub {
-    @files = ();
-    $doc_dir->recurse(
-        preorder => 1,
-        depthfirst => 1,
-        callback => sub {
-            my $path = shift;
-            my ($file) = decode('utf8', $path)=~m|^$doc_dir_regexp(.*)$|;
-            return if substr(basename($path), 0, 1) eq '.';
-            return unless length $file;
-            if (-f $path and $file=~m|^(.*)$suffix_regexp$|) {
-                $file = file($file);
-                my $cache = file($cache_dir, $1 . '.html');
-                my $text = $path->slurp;
-                my $html = Text::Markdown->new->markdown($text);
-                $html=~s|>\n{2,}<|>\n<|g;
-                $html=~s|\n$||;
-                if (!-f $cache or ($cache->stat->mtime <= $path->stat->mtime)) {
-                    $cache->dir->mkpath unless -d $cache->dir;
-                    my $fh = $cache->openw;
-                    $fh->print($html);
-                    $fh->close;
-                    warn 'create cached ', $path;
-                } else {
-                    warn 'find cached ', $path;
-                }
-            } elsif (-d $path) {
-                $file = dir($file);
-                warn 'find dir ', $file;
-            } else {
-                warn $path;
-            }
-            push @files, $file;
-        }
-    );
-    my @dusts;
-    $cache_dir->recurse(
-        callback => sub {
-            my $cache = shift;
-            return if (!-f $cache) and (!-d $cache);
-            my ($file) = decode('utf8', $cache)=~m|^$cache_dir_regexp(.*)$|;
-            if (-f $cache and $file=~m|^(.*)\.html$|) {
-                return if -f file($doc_dir, $1 . $suffix);
-            } elsif (-d $cache) {
-                return if -d dir($doc_dir, $file);
-            }
-            push @dusts, $cache;
-        }
-    );
-    for my $dust (@dusts) {
-        if (-f $dust) {
-            $dust->remove;
-            warn "remove cached $dust";
-        } elsif (-d $dust) {
-            $dust->rmtree;
-            warn "rmtree cached $dust";
-        }
-    }
-};
-$rebuild->();
 
 my $res_403 = [ 403, [ 'Content-Type' => 'text/html' ], [ '403 Forbidden.' ] ];
 my $res_404 = [ 404, [ 'Content-Type' => 'text/html' ], [ '404 Not Found.' ] ];
 
 my $tx = Text::Xslate->new(
-    path   => './',
+    path   => ['./', $cache_dir],
     module => ['Text::Xslate::Bridge::TT2Like'],
     syntax => 'TTerse'
 );
 
+&watch();
+
 my $app = sub {
     my $req = Plack::Request->new(shift);
     
-    my $cache = $req->path eq '/'
-              ? file($cache_dir, $top . '.html')
-              : file($cache_dir, $req->path . '.html');
+    my $file  = ($req->path eq '/' ? $top : $req->path) . '.html';
     return $res_403 if grep($_ eq '..', split('/', $req->path));
-    return $res_404 unless -f $cache;
+    return $res_404 unless -f catfile($cache_dir, $file);
     
     my $is_iphone = $req->user_agent=~/iPhone/ ? 1 : 0;
     my $template = $is_iphone ? 'iphone.html' : 'index.html';
     my $body = $tx->render($template, {
         req       => $req,
         conf      => $conf,
-        files     => \@files,
-        content   => decode('utf8', $cache->slurp),
+        cache     => $file,
         path      => decode('utf8', $req->path),
         is_iphone => $is_iphone
     });
@@ -160,7 +70,131 @@ builder {
     if (-f $htpasswd) {
         enable 'Auth::Htpasswd', file => $htpasswd;
     }
-#    enable 'XForwardedFor',
-#        trust => [qw(127.0.0.1/8)];
+    if ($conf->{reverseproxy}) {
+        enable 'XForwardedFor', trust => [qw(127.0.0.1/8)];
+    }
     $app;
 };
+
+sub watch {
+    my $pid = fork;
+    return if $pid;
+    
+    open(STDERR, '>>debug.log') if $ENV{'DEBUG'};
+    
+    # override Path::Class method
+    no strict 'refs';
+    *{'Path::Class::Entity::depth'} = sub {
+      my ($self) = @_;
+      scalar( () = $self=~/(\/)/g );
+    };
+    *{'Path::Class::Dir::children'} = sub {
+      my ($self, %opts) = @_;
+
+      my $dh = $self->open or Carp::croak( "Can't open directory $self: $!" );
+
+      my @out;
+      while (defined(my $entry = $dh->read)) {
+        next if !$opts{all} && $self->_is_local_dot_dir($entry);
+        next if ($opts{no_hidden} && $entry =~ /^\./);
+        push @out, $self->file($entry);
+        $out[-1] = $self->subdir($entry) if -d $out[-1];
+      }
+      return sort {
+        return $a->is_dir <=> $b->is_dir if $a->is_dir != $b->is_dir;
+        return ($b->basename eq $toppage) <=> ($a->basename eq $toppage)
+            if $a->basename eq $toppage or $b->basename eq $toppage;
+        return $a cmp $b;
+      } @out;
+    };
+
+    my @files;
+    my $create_cache = sub {
+        my $source = shift;
+        my $rel_path = decode('utf8', abs2rel($source, $doc_dir));
+        my $cache = file($cache_dir, substr($rel_path, 0, -1 * (length $suffix)) . '.html');
+        return if -f $cache and $cache->stat->mtime >= $source->stat->mtime;
+        $cache->dir->mkpath unless -d $cache->dir;
+        my $text = $source->slurp;
+        my $html = Text::Markdown->new->markdown($text);
+        $html=~s|>\n{2,}<|>\n<|g;
+        $html=~s|\n$||;
+        my $create = not -f $cache;
+        my $fh = $cache->openw;
+        $fh->print($html);
+        $fh->close;
+        warn 'create cached ', $cache;
+        return $create;
+    };
+    my $rebuild = sub {
+        my $cache_check = shift;
+        @files = ();
+        $doc_dir->recurse(
+            preorder => 1,
+            depthfirst => 1,
+            callback => sub {
+                my $path = shift;
+                return if $path eq $doc_dir;
+                return if -f $path and $path!~m|$suffix_ptn$|;
+                $create_cache->($path) if $cache_check and -f $path;
+                my $rel_path = decode('utf8', '/' . abs2rel($path, $doc_dir));
+                my $file = -f $path ? file($rel_path) : dir($rel_path);
+                push @files, $file;
+            }
+        );
+        
+        my @dusts;
+        $cache_dir->recurse(
+            callback => sub {
+                my $cache = shift;
+                return unless -e $cache;
+                my $rel_path = decode('utf8', abs2rel($cache, $cache_dir));
+                return if $rel_path eq 'sidebar';
+                my $source = -f $cache
+                           ? file($doc_dir, substr($rel_path, 0, -5) . $suffix)
+                           :  dir($doc_dir, $rel_path);
+                return if -e $source;
+                push @dusts, $cache;
+            }
+        );
+        for my $dust (@dusts) {
+            if (-f $dust) {
+                $dust->remove;
+                warn "remove cached $dust";
+            } elsif (-d $dust) {
+                $dust->rmtree;
+                warn "rmtree cached $dust";
+            }
+        }
+        
+        my $str = $tx->render('sidebar.tx', {
+            files => \@files
+        });
+        
+        my $sidebar = file($cache_dir, 'sidebar');
+        my $sidebar_tmp = $sidebar . '.tmp';
+        open(my $fh, '>', $sidebar_tmp) or die $!;
+        print $fh encode('utf8', $str);
+        close $fh;
+        rename($sidebar_tmp, $sidebar);
+        warn "update sidebar";
+    };
+    $rebuild->(1);
+    
+    while (1) {
+        my $watcher = Filesys::Notify::Simple->new([$doc_dir]);
+        $watcher->wait(sub {
+            my $update = 0;
+            for my $event (@_) {
+                if (-f $event->{path}) {
+                    $update = 1 if $create_cache->(file($event->{path}));
+                } else {
+                    $update = 1;
+                }
+            }
+            $rebuild->() if $update;
+        });
+    }
+    
+    exit(1);
+}

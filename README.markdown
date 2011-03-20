@@ -24,7 +24,7 @@ Ajax Markdown Viewer written in Perl, to run under Plack.
 
 ### Run
 
-    plackup -R doc
+    plackup
 
 ### Customize title and footer
 

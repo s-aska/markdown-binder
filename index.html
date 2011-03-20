@@ -29,7 +29,7 @@ body {text-align:center;}
 <aside>
 <nav>
 <span id="expand" class="close" title="side menu all expand.">all expand</span>
-[% INCLUDE 'sidebar.tx' %]
+[% INCLUDE 'sidebar' %]
 </nav>
 </aside>
 <article>
@@ -38,7 +38,7 @@ body {text-align:center;}
 <a href="[% path %].txt" id="source" target="_blank" title="this page source text.">source</a>
 </nav>
 <section>
-[% content | mark_raw %]
+[% INCLUDE cache %]
 </section>
 </article>
 </div>

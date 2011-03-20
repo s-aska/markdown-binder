@@ -11,7 +11,7 @@
 [%- IF path == '/' %]
 <aside>
 <nav>
-[% INCLUDE 'sidebar.tx' %]
+[% INCLUDE 'sidebar' %]
 </nav>
 </aside>
 [%- ELSE %]
@@ -19,7 +19,7 @@
 <nav>
 <a href="/">Menu</a>
 </nav>
-[% content | mark_raw %]
+[% INCLUDE cache %]
 </article>
 [%- END %]
 <footer>[% conf.footer | mark_raw %]</footer>
