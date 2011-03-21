@@ -10,30 +10,29 @@ use JSON;
 use Path::Class;
 use Plack::Builder;
 use Plack::Request;
-use Text::Markdown;
 use Text::Xslate;
 
-my $base_dir     = dirname(__FILE__);
-my $doc_dir      = dir(abs_path($ENV{'MARKDOWN_BINDER_DOC'} || catdir($base_dir, 'doc')));
-my $cache_dir    = dir(abs_path($ENV{'MARKDOWN_BINDER_CACHE'} || catdir($base_dir, 'cache')));
-my $htpasswd     = file($ENV{'MARKDOWN_BINDER_PW'} || catfile($base_dir, '.htpasswd'));
-my $iprules      = file($ENV{'MARKDOWN_BINDER_IP'} || catfile($base_dir, '.iprules'));
-my $conf_file    = file($ENV{'MARKDOWN_BINDER_CONF'} || catfile($base_dir, 'config.json'));
-my $top          = 'TOP';
-my $suffix       = '.md';
-my $toppage      = $top . $suffix;
-my $suffix_ptn = quotemeta $suffix;
+my $base_dir   = dirname(__FILE__);
+my $doc_dir    = dir(abs_path($ENV{'MARKDOWN_BINDER_DOC'} || catdir($base_dir, 'doc')));
+my $cache_dir  = dir(abs_path($ENV{'MARKDOWN_BINDER_CACHE'} || catdir($base_dir, 'cache')));
+my $tx_dir     = abs_path(catdir($base_dir, 'view'));
+my $htpasswd   = file(abs_path($ENV{'MARKDOWN_BINDER_PW'} || catfile($base_dir, '.htpasswd')));
+my $iprules    = file(abs_path($ENV{'MARKDOWN_BINDER_IP'} || catfile($base_dir, '.iprules')));
+my $conf_file  = file(abs_path($ENV{'MARKDOWN_BINDER_CONF'} || catfile($base_dir, 'config.json')));
+my $top        = 'TOP';
+my $suffix     = '.md';
+my $watcher    = catfile($base_dir, 'watcher.pl');
 
 my $res_403 = [ 403, [ 'Content-Type' => 'text/html' ], [ '403 Forbidden.' ] ];
 my $res_404 = [ 404, [ 'Content-Type' => 'text/html' ], [ '404 Not Found.' ] ];
 
 my $tx = Text::Xslate->new(
-    path   => ['./', $cache_dir],
+    path   => [$tx_dir, $cache_dir],
     module => ['Text::Xslate::Bridge::TT2Like'],
     syntax => 'TTerse'
 );
 
-&watch();
+&watch() unless $ENV{'MARKDOWN_BINDER_VIEWER'}; # can with watch standalone only.
 
 my $app = sub {
     my $req = Plack::Request->new(shift);
@@ -85,122 +84,6 @@ builder {
 sub watch {
     my $pid = fork;
     return if $pid;
-    
-    open(STDERR, '>>debug.log') if $ENV{'DEBUG'};
-    
-    # override Path::Class method
-    no strict 'refs';
-    *{'Path::Class::Entity::depth'} = sub {
-      my ($self) = @_;
-      scalar( () = $self=~/(\/)/g );
-    };
-    *{'Path::Class::Dir::children'} = sub {
-      my ($self, %opts) = @_;
-
-      my $dh = $self->open or Carp::croak( "Can't open directory $self: $!" );
-
-      my @out;
-      while (defined(my $entry = $dh->read)) {
-        next if !$opts{all} && $self->_is_local_dot_dir($entry);
-        next if ($opts{no_hidden} && $entry =~ /^\./);
-        push @out, $self->file($entry);
-        $out[-1] = $self->subdir($entry) if -d $out[-1];
-      }
-      return sort {
-        return $a->is_dir <=> $b->is_dir if $a->is_dir != $b->is_dir;
-        return ($b->basename eq $toppage) <=> ($a->basename eq $toppage)
-            if $a->basename eq $toppage or $b->basename eq $toppage;
-        return $a cmp $b;
-      } @out;
-    };
-
-    my @files;
-    my $create_cache = sub {
-        my $source = shift;
-        my $rel_path = decode('utf8', abs2rel($source, $doc_dir));
-        my $cache = file($cache_dir, substr($rel_path, 0, -1 * (length $suffix)) . '.html');
-        return if -f $cache and $cache->stat->mtime >= $source->stat->mtime;
-        $cache->dir->mkpath unless -d $cache->dir;
-        my $text = $source->slurp;
-        my $html = Text::Markdown->new->markdown($text);
-        $html=~s|>\n{2,}<|>\n<|g;
-        $html=~s|\n$||;
-        my $create = not -f $cache;
-        my $fh = $cache->openw;
-        $fh->print($html);
-        $fh->close;
-        warn 'create cached ', $cache;
-        return $create;
-    };
-    my $rebuild = sub {
-        my $cache_check = shift;
-        @files = ();
-        $doc_dir->recurse(
-            preorder => 1,
-            depthfirst => 1,
-            callback => sub {
-                my $path = shift;
-                return if $path eq $doc_dir;
-                return if -f $path and $path!~m|$suffix_ptn$|;
-                $create_cache->($path) if $cache_check and -f $path;
-                my $rel_path = decode('utf8', '/' . abs2rel($path, $doc_dir));
-                my $file = -f $path ? file($rel_path) : dir($rel_path);
-                push @files, $file;
-            }
-        );
-        
-        my @dusts;
-        $cache_dir->recurse(
-            callback => sub {
-                my $cache = shift;
-                return unless -e $cache;
-                my $rel_path = decode('utf8', abs2rel($cache, $cache_dir));
-                return if $rel_path eq 'sidebar';
-                my $source = -f $cache
-                           ? file($doc_dir, substr($rel_path, 0, -5) . $suffix)
-                           :  dir($doc_dir, $rel_path);
-                return if -e $source;
-                push @dusts, $cache;
-            }
-        );
-        for my $dust (@dusts) {
-            if (-f $dust) {
-                $dust->remove;
-                warn "remove cached $dust";
-            } elsif (-d $dust) {
-                $dust->rmtree;
-                warn "rmtree cached $dust";
-            }
-        }
-        
-        my $str = $tx->render('sidebar.tx', {
-            files => \@files
-        });
-        
-        my $sidebar = file($cache_dir, 'sidebar');
-        my $sidebar_tmp = $sidebar . '.tmp';
-        open(my $fh, '>', $sidebar_tmp) or die $!;
-        print $fh encode('utf8', $str);
-        close $fh;
-        rename($sidebar_tmp, $sidebar);
-        warn "update sidebar";
-    };
-    $rebuild->(1);
-    
-    while (1) {
-        my $watcher = Filesys::Notify::Simple->new([$doc_dir]);
-        $watcher->wait(sub {
-            my $update;
-            for my $event (@_) {
-                if (-f $event->{path}) {
-                    $update = 1 if $create_cache->(file($event->{path}));
-                } else {
-                    $update = 1;
-                }
-            }
-            $rebuild->() if $update;
-        });
-    }
-    
-    exit(1);
+    $ENV{'MARKDOWN_BINDER_REQUIRE'} = 1;
+    require $watcher;
 }
