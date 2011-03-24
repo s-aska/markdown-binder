@@ -1,0 +1,11 @@
+<h1>404 Not Found</h1>
+
+<p>Search instead for [% path %]</p>
+
+<ul>
+[%- FOREACH file IN files %]
+[%- IF !file.is_dir %]
+<li class="file"><a href="[% file.path.replace('.md$', '') %]">[% file.path.replace('.md$', '') | same_highlight(path) %]</a></li>
+[%- END %]
+[%- END %]
+</ul>

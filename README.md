@@ -7,12 +7,12 @@ Ajax Markdown Viewer written in Perl, to run under Plack.
 - author: [@su_aska](http://twitter.com/su_aska)
 
 ## Features
-1. Pure Markdown ( not extend grammar )
-2. Plack Application
-3. HTML5
-4. Ajax Page Loading
-5. pushState Support
-6. no javascript Support ( bot, curl, wget...etc )
+1. **High Speed** ( Ajax Page Loading and Pre Convert HTML )
+2. pushState Support
+3. no javascript Support ( bot, curl, wget...etc )
+4. **Pure Markdown** ( not extend grammar )
+5. Plack Application
+6. HTML5
 
 ## Install
 

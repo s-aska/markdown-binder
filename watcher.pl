@@ -5,6 +5,7 @@ use Encode;
 use File::Basename;
 use File::Spec::Functions qw(abs2rel catdir catfile);
 use Filesys::Notify::Simple;
+use JSON;
 use Path::Class;
 use Text::Markdown;
 use Text::Xslate;
@@ -78,6 +79,7 @@ my $create_cache = sub {
     my $source = shift;
     my $rel_path = decode('utf8', abs2rel($source, $doc_dir));
     my $cache = file($cache_dir, substr($rel_path, 0, -1 * (length $suffix)) . '.html');
+    my $cache_tmp = file($cache . '.tmp');
     return if -f $cache and $cache->stat->mtime >= $source->stat->mtime;
     $cache->dir->mkpath unless -d $cache->dir;
     my $text = $source->slurp;
@@ -85,9 +87,10 @@ my $create_cache = sub {
     $html=~s|>\n{2,}<|>\n<|g;
     $html=~s|\n$||;
     my $create = not -f $cache;
-    my $fh = $cache->openw;
+    my $fh = $cache_tmp->openw;
     $fh->print($html);
     $fh->close;
+    rename($cache_tmp, $cache);
     warn 'create cached ', $cache;
     return $create;
 };
@@ -137,11 +140,24 @@ my $rebuild = sub {
     });
     
     my $sidebar = file($cache_dir, 'sidebar');
-    my $sidebar_tmp = $sidebar . '.tmp';
-    open(my $fh, '>', $sidebar_tmp) or die $!;
-    print $fh encode('utf8', $str);
-    close $fh;
+    my $sidebar_tmp = file($sidebar . '.tmp');
+    my $fh = $sidebar_tmp->openw;
+    $fh->print(encode('utf8', $str));
+    $fh->close;
     rename($sidebar_tmp, $sidebar);
+    
+    my $sidebar_json = file($cache_dir, 'sidebar.json');
+    my $sidebar_json_tmp = file($sidebar . '.tmp');
+    my $fh = $sidebar_json_tmp->openw;
+    $fh->print(encode_json([
+        map { +{
+            is_dir => $_->is_dir ? 1 : 0,
+            path   => $_->stringify
+        } } @files
+    ]));
+    $fh->close;
+    rename($sidebar_json_tmp, $sidebar_json);
+    
     warn "update sidebar";
 };
 $rebuild->(1);

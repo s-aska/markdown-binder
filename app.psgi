@@ -10,7 +10,7 @@ use JSON;
 use Path::Class;
 use Plack::Builder;
 use Plack::Request;
-use Text::Xslate;
+use Text::Xslate qw(html_builder);
 
 my $base_dir   = dirname(__FILE__);
 my $doc_dir    = dir(abs_path($ENV{'MARKDOWN_BINDER_DOC'} || catdir($base_dir, 'doc')));
@@ -27,9 +27,22 @@ my $res_403 = [ 403, [ 'Content-Type' => 'text/html' ], [ '403 Forbidden.' ] ];
 my $res_404 = [ 404, [ 'Content-Type' => 'text/html' ], [ '404 Not Found.' ] ];
 
 my $tx = Text::Xslate->new(
-    path   => [$tx_dir, $cache_dir],
-    module => ['Text::Xslate::Bridge::TT2Like'],
-    syntax => 'TTerse'
+    path     => [$tx_dir, $cache_dir],
+    module   => ['Text::Xslate::Bridge::TT2Like'],
+    syntax   => 'TTerse',
+    function => {
+        same_highlight => sub {
+            my ($path) = @_;
+            return html_builder {
+                my ($html) = @_;
+                for my $part (split '/', $path) {
+                    next unless length $part;
+                    $html=~s|$part|<strong>$part<\/strong>|ig;
+                }
+                $html;
+            }
+        }
+    }
 );
 
 &watch() unless $ENV{'MARKDOWN_BINDER_VIEWER'}; # can with watch standalone only.
@@ -39,7 +52,12 @@ my $app = sub {
     
     my $file  = ($req->path eq '/' ? $top : $req->path) . '.html';
     return $res_403 if grep($_ eq '..', split('/', $req->path));
-    return $res_404 unless -f catfile($cache_dir, $file);
+    
+    my %extra_params;
+    unless (-f catfile($cache_dir, $file)) {
+        $file = '404.tx';
+        $extra_params{files} = decode_json(file($cache_dir, 'sidebar.json')->slurp);
+    }
     
     my $conf = decode_json($conf_file->slurp);
     my $is_iphone = $req->user_agent=~/iPhone/ ? 1 : 0;
@@ -49,7 +67,8 @@ my $app = sub {
         conf      => $conf,
         cache     => $file,
         path      => decode('utf8', $req->path),
-        is_iphone => $is_iphone
+        is_iphone => $is_iphone,
+        %extra_params
     });
     
     my $res = $req->new_response(200);
