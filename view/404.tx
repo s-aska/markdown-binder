@@ -2,10 +2,28 @@
 
 <p>Search instead for [% path %]</p>
 
+[%- SET do_same_highlight = same_highlight(path) %]
+[%- SET show_all = 1 %]
 <ul>
 [%- FOREACH file IN files %]
 [%- IF !file.is_dir %]
-<li class="file"><a href="[% file.path.replace('.md$', '') %]">[% file.path.replace('.md$', '') | same_highlight(path) %]</a></li>
+[%- SET name =  file.path.replace('.md$', '') %]
+[%- SET h_name =  do_same_highlight(name) %]
+[%- IF name != h_name %]
+<li class="file"><a href="[% file.path.replace('.md$', '') %]">[% h_name %]</a></li>
+[%- SET show_all = 0 %]
+[%- END %]
+[%- END %]
+[%- END %]
+[%- IF show_all %]
+[%- FOREACH file IN files %]
+[%- IF !file.is_dir %]
+[%- SET name =  file.path.replace('.md$', '') %]
+<li class="file"><a href="[% file.path.replace('.md$', '') %]">[% name %]</a></li>
+[%- END %]
 [%- END %]
 [%- END %]
 </ul>
+
+
+
