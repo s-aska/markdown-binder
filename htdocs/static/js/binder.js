@@ -11,15 +11,6 @@ MarkdownBinder.prototype = {
     dirs: [],
     title: '',
 
-    // util
-    source: function() {
-        if (this.path == '/') {
-            return '/TOP.md';
-        } else {
-            return this.path + '.md';
-        }
-    },
-
     catfile: function(dir, file){
         if (dir == '/') {
             return dir + file;
@@ -96,7 +87,7 @@ MarkdownBinder.prototype = {
 
         // history control
         if (history.pushState) {
-            history.pushState('/', '', location.protocol + '//' + location.host + location.pathname);
+            // history.pushState('/', '', location.protocol + '//' + location.host + location.pathname);
             // browser go back event
             window.addEventListener('popstate', function (event) {
                 if (binder.gone) {
@@ -141,7 +132,6 @@ MarkdownBinder.prototype = {
         var binder = this;
         $('article nav').show();
         $('#permalink').attr('href', binder.path);
-        $('#source').attr('href', binder.source());
     },
 
     initDocument: function(html){
@@ -211,8 +201,8 @@ MarkdownBinder.prototype = {
             var dir = $(this);
             var file = dir.data('file');
             var fileEncode = encodeURI(file);
-            var re = new RegExp('^' + file);
-            var reEncode = new RegExp('^' + fileEncode);
+            var re = new RegExp('^' + file + '/');
+            var reEncode = new RegExp('^' + fileEncode + '/');
             if (file && (binder.path.match(re) || binder.path.match(reEncode))) {
                 dir.removeClass('close');
             }
