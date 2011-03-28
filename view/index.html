@@ -16,6 +16,7 @@ $(document).ready(function() {
     binder.initApplication();
 });
 </script>
+[% INCLUDE 'head.tx' %]
 [%- IF req.user_agent().match('MSIE') %]
 <!--[if IE]>
 <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>

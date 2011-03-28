@@ -1,6 +1,15 @@
 @charset "utf-8";
 
-/* reset */
+/*****************************************************
+1. reset
+2. base
+3. header
+4. footer
+5. aside
+6. article
+*****************************************************/
+
+/********** reset **********/
 
 html, body, div, span, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -14,270 +23,250 @@ table, caption, tbody, tfoot, thead, tr, th, td,
 article, aside, dialog, figure, footer, header, 
 hgroup, menu, nav, section, menu,
 time, mark, audio, video {
-    margin:0;
-    padding:0;
-    border:0;
-    vertical-align:baseline;
-    background:transparent;
-    font-size:100%;
-    outline:0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    vertical-align: baseline;
+    background: transparent;
+    font-size: 100%;
+    outline: 0;
 }
 body {
-    line-height:1;
+    line-height: 1;
 }
-
 article, aside, dialog, figure, footer, header, 
 hgroup, nav, section {
-    display:block;
+    display: block;
  
 }
-
 blockquote, q {
-    quotes:none;
+    quotes: none;
 }
-
 blockquote:before, blockquote:after,
 q:before, q:after {
-    content:'';
-    content:none;
+    content: '';
+    content: none;
 }
-
 a {
-    margin:0;
-    padding:0;
-    border:0;
-    vertical-align:baseline;
-    background:transparent;
-    font-size:100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    vertical-align: baseline;
+    background: transparent;
+    font-size: 100%;
 }
-
 ins {
-    color:#000;
-    background-color:#ff9;
-    text-decoration:none;
+    color: #000;
+    background-color: #ff9;
+    text-decoration: none;
 }
-
 mark {
-    color:#000;    
-    background-color:#ff9;
-    font-style:italic;
-    font-weight:bold;
+    color: #000;    
+    background-color: #ff9;
+    font-style: italic;
+    font-weight: bold;
 }
-
 del {
-    text-decoration:line-through;
+    text-decoration: line-through;
 }
-
 abbr[title], dfn[title] {
-    border-bottom:1px dotted #000;
-    cursor:help;
+    border-bottom: 1px dotted #000;
+    cursor: help;
 }
-
 table {
-    border-collapse:collapse;
-    border-spacing:0;
+    border-collapse: collapse;
+    border-spacing: 0;
 }
-
 hr {
-    margin:1em 0;
-    padding:0;
-    border:0;    
-    border-top:1px solid #cccccc;
-    display:block;
-    height:1px;
+    margin: 1em 0;
+    padding: 0;
+    border: 0;    
+    border-top: 1px solid #cccccc;
+    display: block;
+    height: 1px;
 }
-
 input, select {
-    vertical-align:middle;
+    vertical-align: middle;
 }
 
+/********** base **********/
+
+body, th, td, h1, h2, h3, h4, h5, h6, pre, input, textarea, option, div, p, dt, dd, li, address {
+    line-height: 1.6;
+    color: #5D5D5D;
+    font-family: "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+    font-style: normal;
+    font-weight: normal;
+}
+html, body {
+    height: 100%; 
+}
+body {
+    padding-top: 20px;
+    font-size: 13px;
+}
+a {
+    color: #68a9cf;
+    text-decoration: none;
+}
+a: hover {
+    color: #68a9cf;
+    background-color: #f7faff;
+}
 .clearfix:after {
-    display:block;
-    clear:both;
-    height:0;
-    visibility:hidden;
-    content:".";  
+    display: block;
+    clear: both;
+    height: 0;
+    visibility: hidden;
+    content: ".";  
 }
 
 .clearfix {
-    min-height:1px;
+    min-height: 1px;
 }
-
 * html .clearfix {
-    height:1px;
-    height:auto;
-    overflow:hidden;
+    height: 1px;
+    height: auto;
+    overflow: hidden;
 }
-
-/* ************ */
-
-body, th, td, h1, h2, h3, h4, h5, h6, pre, input, textarea, option, div, p, dt, dd, li, address {
-    line-height:1.6;
-    color:#5D5D5D;
-    font-family:"ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
-    font-style:normal;
-    font-weight:normal;
-}
-
-a {
-    color:#68a9cf;
-    text-decoration:none;
-}
-a:hover {
-    color:#68a9cf;
-    background-color:#f7faff;
-}
-
-
-html, body {
-    height:100%; 
-}
-
-body {
-    padding-top:20px;
-    font-size:13px;
-}
-
 #wrapper {
-    margin:0 auto;
-    padding:0 20px;
-    width:1000px;
-    height:auto;
+    margin: 0 auto;
+    padding: 0 20px;
+    width: 1000px;
+    height: auto;
 }
 
-/* header */
+/********** header **********/
 
 header h1 {
-    margin-bottom:0px;
-    padding-bottom:20px;
-    border-bottom:1px solid #ccc;
-    font-family:Raleway;
-    font-weight:normal;
-    font-size:30px;
-    text-align:center;
+    margin-bottom: 0px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ccc;
+    font-family: Raleway;
+    font-weight: normal;
+    font-size: 30px;
+    text-align: center;
 }
 
-/* footer */
+/********** footer **********/
 
 footer {
-    padding:20px 0;
-    border-top:1px solid #ccc;
-    text-align:center;
+    padding: 20px 0;
+    border-top: 1px solid #ccc;
+    text-align: center;
 }
 
-/* sidebar */
+/********** aside **********/
 
 aside {
     margin-right: 20px;
-    padding:20px 0px;
-    position:relative;
-    float:left;
-    width:230px;
-    height:auto;
-    font-size:110%;
+    padding: 20px 0px;
+    position: relative;
+    float: left;
+    width: 230px;
+    height: auto;
+    font-size: 110%;
 }
 aside nav #expand {
-    position:absolute;
-    right:0px;
-    display:none;
+    position: absolute;
+    right: 0px;
+    display: none;
 }
 aside nav ul {
     list-style: none;
 }
 aside nav ul ul {
-    padding-left:10px;
+    padding-left: 10px;
 }
 aside nav li.dir {
 }
 aside nav li.close {
-    color:#cccccc;
+    color: #cccccc;
 }
 aside nav li.highlight {
-    color:#666666;
+    color: #666666;
 }
 aside nav li a {
-    display:block;
+    display: block;
 }
 aside nav li a.highlight {
-    background-color:#ffffdc;
+    background-color: #ffffdc;
 }
 
-/* contents */
+/********** article **********/
 
 article {
-    padding:20px;
-    border-left:1px solid #ccc;
-    float:right;
-    width:705px;
-    position:relative;
+    padding: 20px;
+    border-left: 1px solid #ccc;
+    float: right;
+    width: 705px;
+    position: relative;
 }
 
 /* permalink and source */
 
 article nav {
-    position:absolute;
-    right:0;
-    text-align:right;
+    position: absolute;
+    right: 0;
+    text-align: right;
 }
 
 /* paragraphs */
 
 article {
-    font-size:110%;
+    font-size: 110%;
 }
-
 article p {
-    margin:1em 0;
-    line-height:1.9;
-    letter-spacing:1px;
+    margin: 1em 0;
+    line-height: 1.9;
+    letter-spacing: 1px;
 }
 
 /* headers */
 
 article h1 {
-    margin:0 0 0.5em 0;
-    font-size:160%;
+    margin: 0 0 0.5em 0;
+    font-size: 160%;
 }
-
 article h2 {
-    margin:1.5em 0 1em 0;
-    padding-left:10px;
-    border-left:3px solid #ccc;
-    font-size:130%;
+    margin: 1.5em 0 1em 0;
+    padding-left: 10px;
+    border-left: 3px solid #ccc;
+    font-size: 130%;
 }
 article h3 {
-    margin:0 0 4px 0;
-    font-size:120%;
+    margin: 0 0 4px 0;
+    font-size: 120%;
 }
 
 /* blockquotes */
 
 article blockquote {
-    margin:10px 10px 20px 10px;
-    padding-left:10px;
-    border-left:1px solid  #999999;
+    margin: 10px 10px 20px 10px;
+    padding-left: 10px;
+    border-left: 1px solid  #999999;
 }
 article blockquote p {
-    padding:1em 0.5em;
+    padding: 1em 0.5em;
 }
 
 /* code blocks */
 
 article code {
-    padding:2px;
-    border-bottom:1px dotted #999999;
-    font-family:Courier;
+    padding: 2px;
+    border-bottom: 1px dotted #999999;
+    font-family: Courier;
 }
 article pre {
-    margin:10px 10px 20px 10px;
-    padding:10px;
-    border:1px solid  #bbb;
-    background-color:#eee;
+    margin: 10px 10px 20px 10px;
+    padding: 10px;
+    border: 1px solid  #bbb;
+    background-color: #eee;
 }
 article pre code {
-    padding:0;
-    border-bottom:none;
-    letter-spacing:0;
+    padding: 0;
+    border-bottom: none;
+    letter-spacing: 0;
     font-size: 85%;
 }
 
@@ -285,16 +274,16 @@ article pre code {
 
 article ul,
 article ol {
-    margin-bottom:16px;
-    margin-left:20px;
+    margin-bottom: 16px;
+    margin-left: 20px;
 }
 article ul ul,
 article ol ol {
-    margin-bottom:0;
+    margin-bottom: 0;
 }
 article ul p,
 article ol p {
-    margin:0;
+    margin: 0;
 }
 article li {
 }
@@ -302,9 +291,9 @@ article li {
 /* emphasis */
 
 article em {
-    font-style:normal;
-    font-weight:bold;
+    font-style: normal;
+    font-weight: bold;
 }
 article strong {
-    color:#BF0000;
+    color: #BF0000;
 }
