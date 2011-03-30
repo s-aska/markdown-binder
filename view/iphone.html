@@ -19,7 +19,11 @@
 <nav>
 <a href="/">Menu</a>
 </nav>
-[% INCLUDE cache %]
+[% IF is_404 %]
+[% INCLUDE '404.tx' %]
+[% ELSE %]
+[% cache.slurp() | mark_raw %]
+[% END %]
 </article>
 [%- END %]
 <footer>[% conf.footer | mark_raw %]</footer>

@@ -41,7 +41,11 @@ body {text-align:center;}
 <a href="[% path %]" id="permalink" title="this page url.">permalink</a>
 </nav>
 <section>
-[% INCLUDE cache %]
+[%- IF is_404 %]
+[%- INCLUDE '404.tx' %]
+[%- ELSE %]
+[%- cache.slurp() | mark_raw %]
+[%- END %]
 </section>
 </article>
 </div>

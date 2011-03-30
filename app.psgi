@@ -50,12 +50,12 @@ my $tx = Text::Xslate->new(
 my $app = sub {
     my $req = Plack::Request->new(shift);
     
-    my $file  = ($req->path eq '/' ? $top : $req->path) . '.html';
+    my $file  = file($cache_dir, ($req->path eq '/' ? $top : $req->path) . '.html');
     return $res_403 if grep($_ eq '..', split('/', $req->path));
     
     my %extra_params;
-    unless (-f catfile($cache_dir, $file)) {
-        $file = '404.tx';
+    unless (-f $file) {
+        $extra_params{is_404}++;
         $extra_params{files} = decode_json(file($cache_dir, 'sidebar.json')->slurp);
     }
     
