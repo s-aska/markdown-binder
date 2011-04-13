@@ -136,7 +136,6 @@ function initHeight(){
     var a_padding = $('aside').attr('offsetHeight') - $('aside').height();
     var a_height = w_height - h_height - f_height - a_padding;
     $('aside').height(a_height);
-    console.log(a_height);
 }
 
 function initPagelink(){
