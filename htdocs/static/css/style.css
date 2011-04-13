@@ -103,6 +103,7 @@ html, body {
 }
 body {
     font-size: 13px;
+    overflow-y: scroll;
 }
 a {
     color: #68a9cf;
@@ -170,7 +171,7 @@ aside {
 }
 aside nav #expand {
     position: absolute;
-    right: 20px;
+    left: 170px;
     display: none;
 }
 aside nav ul {
