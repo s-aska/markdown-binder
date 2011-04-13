@@ -1,5 +1,7 @@
 (function(ns, w, d) {
 
+var w = $(w);
+
 ns.MarkdownBinder = initialize;
 ns.MarkdownBinder.prototype = {
     expanded: false,
@@ -89,7 +91,6 @@ function expand(){
         $('aside nav li.dir').removeClass('close');
         $('#expand').removeClass('close');
         this.expanded = true;
-        this.initHeight();
     }
 }
 
@@ -117,6 +118,7 @@ function initApplication(){
         $(this).removeClass('highlight');
     });
     $('#expand').show();
+    w.bind('resize', initHeight);
 
     // init 
     this.path = location.pathname;
@@ -128,15 +130,13 @@ function initApplication(){
 }
 
 function initHeight(){
-    $('article').removeAttr('style');
-    $('aside').removeAttr('style');
-    var sidebar_height = $('aside').height();
-    var document_height = $('article').height();
-    if (sidebar_height > document_height) {
-        $('article').height(sidebar_height);
-    } else {
-        $('aside').height(document_height);
-    }
+    var h_height = $('header').attr('offsetHeight');
+    var f_height = 0;//$('footer').attr('offsetHeight');
+    var w_height = w.height();
+    var a_padding = $('aside').attr('offsetHeight') - $('aside').height();
+    var a_height = w_height - h_height - f_height - a_padding;
+    $('aside').height(a_height);
+    console.log(a_height);
 }
 
 function initPagelink(){
@@ -148,7 +148,6 @@ function initDocument(html){
     var binder = this;
     if (html) {
         $('article section').html(html);
-        this.initHeight();
     }
     $('article section').find('a').each(function(){
         if ($(this).attr('href').match(/^https?:/)) {
@@ -157,6 +156,7 @@ function initDocument(html){
             $(this).bind('click', function(){ binder.go($(this).attr('href')); return false;});
         }
     });
+    w.scrollTop(0);
 }
 
 function initSidebar(){
@@ -181,7 +181,7 @@ function initSidebar(){
         if (ul.length > 0 && ul.get(0).tagName.toLowerCase() == 'ul') {
             var display = ul.css('display');
             if (display == "" || display == "none") {
-                ul.slideDown('fast', function(){dir.removeClass('close');binder.initHeight();});
+                ul.slideDown('fast', function(){dir.removeClass('close');});
             } else {
                 ul.slideUp('fast', function(){dir.addClass('close')});
             }
@@ -216,7 +216,6 @@ function initHighlight(){
             dir.removeClass('close');
         }
     });
-    this.initHeight();
 }
 
 })(this, this, document);

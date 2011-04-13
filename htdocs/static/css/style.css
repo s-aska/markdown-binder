@@ -99,59 +99,58 @@ body, th, td, h1, h2, h3, h4, h5, h6, pre, input, textarea, option, div, p, dt, 
     font-weight: normal;
 }
 html, body {
-    height: 100%; 
+    height: 100%;
 }
 body {
-    padding-top: 20px;
     font-size: 13px;
 }
 a {
     color: #68a9cf;
     text-decoration: none;
 }
-a: hover {
+a:hover {
     color: #68a9cf;
     background-color: #f7faff;
 }
-.clearfix:after {
-    display: block;
-    clear: both;
-    height: 0;
-    visibility: hidden;
-    content: ".";  
-}
-
-.clearfix {
-    min-height: 1px;
-}
-* html .clearfix {
-    height: 1px;
-    height: auto;
-    overflow: hidden;
-}
 #wrapper {
-    margin: 0 auto;
-    padding: 0 20px;
+    margin: 0 auto 0 auto;
+    padding: 60px 20px 0 20px;
     width: 1000px;
     height: auto;
 }
+#wrapper:after {
+    display: block;
+    clear: both;
+    content:"";
+} /* clearfix */
 
 /********** header **********/
 
+header {
+    position: fixed;
+    top: 0;
+    width:100%;
+    height: 60px;
+    background-color: white;
+    z-index: 1;
+    border-bottom: 1px solid #ccc;
+}
+
 header h1 {
     margin-bottom: 0px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #ccc;
+    padding-top: 10px;
+    padding-bottom: 10px;
     font-family: Raleway;
     font-weight: normal;
-    font-size: 30px;
+    font-size: 24px;
     text-align: center;
 }
 
 /********** footer **********/
 
 footer {
-    padding: 20px 0;
+    display: none;
+    padding: 10px 0;
     border-top: 1px solid #ccc;
     text-align: center;
 }
@@ -159,9 +158,11 @@ footer {
 /********** aside **********/
 
 aside {
-    margin-right: 20px;
-    padding: 20px 0px;
-    position: relative;
+    margin-right: 0px;
+    padding: 20px 20px 20px 0px;
+    border-right: 1px solid #ccc;
+    position: fixed;
+    overflow-y: auto;
     float: left;
     width: 230px;
     height: auto;
@@ -169,7 +170,7 @@ aside {
 }
 aside nav #expand {
     position: absolute;
-    right: 0px;
+    right: 20px;
     display: none;
 }
 aside nav ul {
@@ -196,8 +197,8 @@ aside nav li a.highlight {
 /********** article **********/
 
 article {
+    margin: 0 0 0 0;
     padding: 20px;
-    border-left: 1px solid #ccc;
     float: right;
     width: 705px;
     position: relative;
@@ -283,9 +284,10 @@ article ol ol {
 }
 article ul p,
 article ol p {
-    margin: 0;
+    margin: 10px 0 0 0;
 }
 article li {
+    letter-spacing: 1px;
 }
 
 /* emphasis */
