@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>[% app.title %][% IF title %] - [% title %][% END %]</title>
+<link rel="alternate" type="application/rss+xml" title="rss" href="http://blog.7kai.org/index.rdf">
+<link rel="stylesheet" type="text/css" href="/static/css/style.css" media="all">
+<link rel="stylesheet" type="text/css" href="/static/css/blog.css" media="all">
+<link href='http://fonts.googleapis.com/css?family=Raleway:100' rel='stylesheet' type='text/css'>
+[% INCLUDE 'head.tx' %]
+</head>
+<body>
+<header><h1><a href="/">[% app.title %]</a></h1></header>
+<div id="wrapper">
+<aside>
+<nav>
+[% app.load_sidebar | mark_raw %]
+</nav>
+</aside>
+<article>
+[%- FOREACH entry IN entries %]
+<section>
+[%- IF mode == 'entry' %]
+[% app.load(entry.file) | markdown %]
+[% INCLUDE 'page_foot.tx' WITH entry = entry %]
+[%- ELSE %]
+<nav class="entry-list">
+<h1><a href="[% app.url(entry.url) %]">[% entry.title %]</a></h1>
+<span class="date">[% entry.date %]</span>
+</nav>
+[%- END %]
+</section>
+[% END %]
+</article>
+</div>
+<footer>[% app.footer | mark_raw %]</footer>
+</body>
+</html>

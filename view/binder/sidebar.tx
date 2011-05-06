@@ -1,0 +1,16 @@
+[%- MACRO disp(dir) BLOCK -%]
+[%- FOREACH file IN app.get_files(dir) %]
+[%- IF file.is_dir %]
+<li class="dir" data-file="[% app.get_path(file) %]">[% app.get_basename(file) %]
+<ul>
+[%- disp(file) %]
+</ul>
+[%- ELSE %]
+<li class="file"><a href="[% app.get_path(file) %]">[% app.get_basename(file) %]</a></li>
+[%- END %]
+[%- END %]
+</li>
+[%- END -%]
+<ul>
+[%- disp(app.root) %]
+</ul>

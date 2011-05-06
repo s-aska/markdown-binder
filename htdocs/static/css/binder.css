@@ -1,0 +1,71 @@
+@charset "utf-8";
+
+/*****************************************************
+1. reset
+2. base
+3. header
+4. footer
+5. aside
+6. article
+*****************************************************/
+
+/********** header **********/
+
+header {
+    height: 80px;
+}
+header h1 {
+    position: fixed;
+    top: 0;
+    z-index: 1;
+    background-color: white;
+}
+header nav {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+}
+header nav #close {
+    display: none;
+}
+
+/********** aside **********/
+
+aside {
+    padding: 20px 20px 20px 0px;
+    border-right: 1px solid #ccc;
+    position: fixed;
+    float: left;
+    width: 230px;
+    overflow-y: auto;
+}
+aside nav #expand {
+    display: none;
+    position: absolute;
+    left: 170px;
+}
+aside nav ul ul {
+    padding-left: 10px;
+}
+aside nav li.dir {
+}
+aside nav li.close {
+    color: #cccccc;
+}
+aside nav li.highlight {
+    color: #666666;
+}
+aside nav li a.highlight {
+    background-color: #ffffdc;
+}
+
+/********** article **********/
+
+/* permalink */
+
+article nav {
+    position: absolute;
+    right: 0;
+    text-align: right;
+}

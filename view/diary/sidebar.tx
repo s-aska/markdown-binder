@@ -1,0 +1,94 @@
+[% INCLUDE 'sidebar_head.tx' %]
+
+<section>
+<h1>Recent entry</h1>
+<ul>
+[% FOREACH entry IN recents %]
+<li><a href="[% app.url(entry.url) %]" title="[% entry.md %]">[% entry.title %]</a></li>
+[% END %]
+</ul>
+</section>
+
+<section>
+<h1>Category</h1>
+<ul>
+[% FOREACH category IN categories %]
+<li><a href="[% app.url(category.url) %]">[% category.name %] ([% category.count %])</a></li>
+[% END %]
+</ul>
+</section>
+
+<section>
+<h1>Calendar</h1>
+<div id="this-month">
+<div id="show-last-month"><a href="#">&lt;&lt;</a></div>
+<table>
+[% FOREACH week IN this_calendar %]
+<tr>
+[% FOREACH day IN week %]
+[% IF day.day == 0 %]
+<td>&nbsp;</td>
+[% ELSIF day.has_entry %]
+<td><a href="[% app.url(day.url) %]">[% day.day %]</a></td>
+[% ELSE %]
+<td>[% day.day %]</td>
+[% END %]
+[% END %]
+</tr>
+[% END %]
+</table>
+</div>
+<div id="last-month">
+<div id="show-this-month"><a href="#">&gt;&gt;</a></div>
+<table>
+[% FOREACH week IN last_calendar %]
+<tr>
+[% FOREACH day IN week %]
+[% IF day.day == 0 %]
+<td>&nbsp;</td>
+[% ELSIF day.has_entry %]
+<td><a href="[% app.url(day.url) %]">[% day.day %]</a></td>
+[% ELSE %]
+<td>[% day.day %]</td>
+[% END %]
+[% END %]
+</tr>
+[% END %]
+</table>
+</div>
+</section>
+
+<section>
+<h1>Archive by month</h1>
+<ul>
+[% FOREACH month IN months %]
+<li><a href="[% app.url(month.url) %]">[% month.name %] ([% month.count %])</a></li>
+[% END %]
+</ul>
+</section>
+
+<style>
+#last-month {
+  display: none;
+}
+#show-this-month {
+  padding-right: 24px;
+  text-align: right;
+}
+#show-last-month {
+  padding-left: 20px;
+  text-align: left;
+}
+</style>
+<script>
+$('#show-this-month a').click(function(){
+  $('#last-month').hide();
+  $('#this-month').show();
+  return false;
+});
+$('#show-last-month a').click(function(){
+  $('#this-month').hide();
+  $('#last-month').show();
+  return false;
+});
+</script>

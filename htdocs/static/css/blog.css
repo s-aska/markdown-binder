@@ -1,0 +1,139 @@
+@charset "utf-8";
+
+/*****************************************************
+1. reset
+2. base
+3. header
+4. footer
+5. aside
+6. article
+*****************************************************/
+
+/********** reset **********/
+
+/********** base **********/
+
+/********** header **********/
+
+header h1 {
+}
+header h1 a {
+    color: #5D5D5D;
+    text-decoration: none;
+}
+header h1 a:hover {
+    color: #5D5D5D;
+    background: none;
+    text-decoration: none;
+}
+
+/********** footer **********/
+
+footer {
+    display: block;
+}
+
+/********** aside **********/
+
+aside {
+    padding: 20px 0px 0px 20px;
+    position: relative;
+    float: right;
+    width: 235px;
+    height: auto;
+    font-size: 110%;
+}
+aside nav section {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ccc;
+}
+aside nav ul {
+    padding-left: 10px;
+}
+aside nav li {
+    overflow: hidden;
+}
+aside nav li.close {
+    color: #cccccc;
+}
+aside nav li.highlight {
+    color: #666666;
+}
+aside nav li a {
+    font-size: 90%;
+    white-space: nowrap;
+}
+aside nav table {
+    margin-top: 6px;
+    margin-left: 10px;
+}
+aside nav td {
+    width: 30px;
+    text-align: center;
+}
+
+/********** article **********/
+
+article {
+    padding: 20px 20px 10px 20px;
+    border-right: 1px solid #ccc;
+    float: left;
+    width: 704px;
+    min-height: 700px;
+    position: relative;
+}
+article hr {
+    border-top: 2px solid #cccccc;
+    height: 2px;
+}
+article section hr {
+    margin: 1em 0;
+    padding: 0;
+    border: 0;    
+    border-top: 1px solid #cccccc;
+    display: block;
+    height: 1px;
+}
+
+/* nav */
+
+article nav {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #ccc;
+}
+article nav:after {
+    display: block;
+    clear: both;
+    content:"";
+} /* clearfix */
+article nav .date {
+    float: right;
+    font-size: 12px;
+}
+article nav .hatena-bookmark-button-frame {
+    margin-right: 14px;
+}
+article nav .hatena-bookmark-button-frame,
+article nav .twitter-share-button,
+article nav .fb_iframe_widget {
+    float: left;
+}
+article nav.entry-list {
+    margin-top: 0px;
+    margin-bottom: 5px;
+    padding-top: 0;
+    padding-bottom: 5px;
+    border-top: none;
+    border-bottom: 1px solid #ccc;
+}
+article nav.entry-list h1 {
+    margin-bottom: 0;
+    border: none;
+    float: left;
+}
+article nav.entry-list .date {
+    padding-top: 10px;
+}

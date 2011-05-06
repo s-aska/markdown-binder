@@ -1,0 +1,25 @@
+<h1>404 Not Found ? no ! search page.</h1>
+
+<p>Search instead for [% path %]</p>
+
+[%- SET do_same_highlight = same_highlight(path) %]
+[%- SET show_all = 1 %]
+<ul>
+[%- FOREACH file IN app.get_recursive_files %]
+[%- IF !file.is_dir %]
+[%- SET name =  app.get_path(file) %]
+[%- SET h_name =  do_same_highlight(name) %]
+[%- IF name != h_name %]
+<li class="file"><a href="[% app.get_path(file) %]">[% h_name %]</a></li>
+[%- SET show_all = 0 %]
+[%- END %]
+[%- END %]
+[%- END %]
+[%- IF show_all %]
+[%- FOREACH file IN files %]
+[%- IF !file.is_dir %]
+<li class="file"><a href="[% app.get_path(file) %]">[% app.get_path(file) %]</a></li>
+[%- END %]
+[%- END %]
+[%- END %]
+</ul>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>[% app.title %]</title>
+<link rel="stylesheet" type="text/css" href="/static/css/style.css" media="all">
+<link rel="stylesheet" type="text/css" href="/static/css/binder.css" media="all">
+<link href='http://fonts.googleapis.com/css?family=Raleway:100' rel='stylesheet' type='text/css'>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+<script type="text/javascript" src="/static/js/binder.js"></script>
+</head>
+<body>
+<header>
+<h1>[% app.title %]</h1>
+<nav><span id="close" title="close header.">close</span></nav>
+</header>
+<div id="wrapper">
+<aside>
+<nav>
+<span id="expand" class="close" title="side menu all expand.">expand</span>
+[% INCLUDE 'sidebar.tx' %]
+</nav>
+</aside>
+<article>
+<nav>
+<a href="[% path %]" id="permalink" title="this page url.">permalink</a>
+</nav>
+<section>
+[% IF file %]
+[% file.slurp | markdown %]
+[%- ELSE %]
+[%- INCLUDE '404.tx' %]
+[%- END %]
+</section>
+</article>
+</div>
+</body>
+</html>
