@@ -2,6 +2,7 @@
 
 App::MarkdownBinder is Ajax Markdown Viewer written in Perl, to run under Plack.
 
+- document: <http://pad.demo.7kai.org/note/>
 - source: [github](https://github.com/s-aska/markdown-binder)
 - author: [@su_aska](http://twitter.com/su_aska)
 - author's note(and demo): [The Document of Aska](http://doc.7kai.org)
