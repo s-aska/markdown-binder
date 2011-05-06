@@ -1,3 +1,8 @@
+$(document).ready(function() {
+    var binder = new MarkdownBinder();
+    binder.initApplication();
+});
+
 (function(ns, w, d) {
 
 var w = $(w);
@@ -45,9 +50,6 @@ function go(path, callback){
 function load(path, callback){
     var binder = this;
     var url = path;
-    if (url == '/') {
-        url = url + 'TOP';
-    }
     if ($.browser.msie) {
         url = encodeURI(url);
     }
@@ -101,7 +103,7 @@ function initApplication(){
     if (history.pushState) {
         // history.pushState('/', '', location.protocol + '//' + location.host + location.pathname);
         // browser go back event
-        window.addEventListener('popstate', function (event) {
+        w.bind("popstate", function (event) {
             if (binder.gone) {
                 binder.load(event.state);
             }
@@ -109,7 +111,7 @@ function initApplication(){
     }
 
     // bind
-    $('#expand').bind('click', function(){binder.expand();return false;});
+    $('#expand').bind('click', function(){binder.expand()});
     $('#expand').hover(function(){
         $(this).css('cursor','pointer');
         $(this).addClass('highlight');
@@ -118,6 +120,19 @@ function initApplication(){
         $(this).removeClass('highlight');
     });
     $('#expand').show();
+    $('#close').bind('click', function(){
+        $('header').hide();
+        $('#wrapper').css('padding-top', '0');
+        binder.initHeight();
+    });
+    $('#close').hover(function(){
+        $(this).css('cursor','pointer');
+        $(this).addClass('highlight');
+    },function(){
+        $(this).css('cursor','default');
+        $(this).removeClass('highlight');
+    });
+    $('#close').show();
     w.bind('resize', initHeight);
 
     // init 

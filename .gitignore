@@ -1,2 +1,6 @@
-doc
 config.json
+markdown-binder-plack.tmproj
+.DS_Store
+7kai.psgi
+7kai_local.psgi
+view/diary_7kai
