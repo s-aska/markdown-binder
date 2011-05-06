@@ -9,7 +9,7 @@ var w = $(w);
 
 ns.MarkdownBinder = initialize;
 ns.MarkdownBinder.prototype = {
-    expanded: false,
+    expanded: true,
     gone: false,
     path: false,
     basename: false,
@@ -205,6 +205,7 @@ function initSidebar(){
     if ($('aside nav').height() > $('aside').height()) {
         $('aside ul ul').hide();
         $('aside ul li.dir').addClass('close');
+        binder.expanded = false;
     }
     this.initHighlight();
 }
