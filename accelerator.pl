@@ -1,3 +1,10 @@
+#!/usr/bin/env perl
+
+# http://pad.demo.7kai.org/note/howto/5.HighPerformance
+# 
+# eg.
+#     perl accelerator.pl -r ./doc -c /home/aska/.cache
+# 
 
 use strict;
 use Cwd 'abs_path';

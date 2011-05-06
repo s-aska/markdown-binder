@@ -137,10 +137,10 @@ function initApplication(){
 
     // init 
     this.path = location.pathname;
+    this.initHeight();
     this.initSidebar();
     this.initPagelink();
     this.initDocument();
-    this.initHeight();
     this.title = $('header h1').text();
 }
 
@@ -202,8 +202,10 @@ function initSidebar(){
         }
         return false;
     });
-    $('aside ul ul').hide();
-    $('aside ul li.dir').addClass('close');
+    if ($('aside nav').height() > $('aside').height()) {
+        $('aside ul ul').hide();
+        $('aside ul li.dir').addClass('close');
+    }
     this.initHighlight();
 }
 
