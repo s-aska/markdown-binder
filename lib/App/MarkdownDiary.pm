@@ -9,8 +9,7 @@ use Cwd 'abs_path';
 use Data::MessagePack;
 use Digest::MD5;
 use Encode;
-use File::Spec;
-use File::Spec::Functions qw(abs2rel catdir);
+use File::Spec::Functions qw(abs2rel catdir tmpdir);
 use HTML::Entities;
 use Path::Class;
 use Text::Markdown;
@@ -40,15 +39,15 @@ sub prepare_app {
     $self->tx($tx);
     unless ($self->tmpdir) {
         my $dir = Digest::MD5::md5_hex($self->root);
-        my $tmpdir = catdir(File::Spec->tmpdir(), $dir);
+        my $tmpdir = catdir(tmpdir(), $dir);
+        $self->tmpdir($tmpdir);
         unless (-d $tmpdir) {
             mkdir $tmpdir, 0700;
+            $self->rebuild;
         }
-        $self->tmpdir($tmpdir);
     }
     $self->max_recents(10) unless $self->max_recents;
     $self->max_disp(100) unless $self->max_disp;
-    $self->rebuild;
 }
 
 sub toppage {
@@ -132,6 +131,8 @@ sub page {
 
 sub rebuild {
     my ($self) = @_;
+    
+    warn "rebuild";
     
     my $entries = $self->find_entries;
     
