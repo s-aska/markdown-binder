@@ -3,6 +3,14 @@
 <head>
 <meta charset="utf-8">
 <title>[% app.title %][% IF title %] - [% title %][% END %]</title>
+<!--[if lt IE 9]>
+<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+<script>
+if (navigator.userAgent.indexOf('Win') != -1) {
+    document.write('<link rel="stylesheet" type="text/css" href="/static/css/win.css" media="all">')
+}
+</script>
 <link rel="alternate" type="application/rss+xml" title="rss" href="http://blog.7kai.org/index.rdf">
 <link rel="stylesheet" type="text/css" href="/static/css/style.css" media="all">
 <link rel="stylesheet" type="text/css" href="/static/css/blog.css" media="all">

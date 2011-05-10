@@ -3,6 +3,14 @@
 <head>
 <meta charset="utf-8">
 <title>[% app.title %]</title>
+<!--[if lt IE 9]>
+<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+<script>
+if (navigator.userAgent.indexOf('Win') != -1) {
+    document.write('<link rel="stylesheet" type="text/css" href="/static/css/win.css" media="all">')
+}
+</script>
 <link rel="stylesheet" type="text/css" href="/static/css/style.css" media="all">
 <link rel="stylesheet" type="text/css" href="/static/css/binder.css" media="all">
 <link href='http://fonts.googleapis.com/css?family=Raleway:100' rel='stylesheet' type='text/css'>
