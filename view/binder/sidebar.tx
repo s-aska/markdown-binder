@@ -5,11 +5,11 @@
 <ul>
 [%- disp(file) %]
 </ul>
+</li>
 [%- ELSE %]
 <li class="file"><a href="[% app.get_path(file) %]">[% app.get_basename(file) %]</a></li>
 [%- END %]
 [%- END %]
-</li>
 [%- END -%]
 <ul>
 [%- disp(app.root) %]
