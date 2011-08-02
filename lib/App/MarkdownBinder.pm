@@ -3,7 +3,7 @@ package App::MarkdownBinder;
 use strict;
 use warnings;
 use parent 'DocLife';
-use Plack::Util::Accessor qw(top title tx);
+use Plack::Util::Accessor qw(top title tx tmpl_dir);
 use Encode;
 use Encode::Locale;
 use File::Spec::Functions qw(abs2rel);
@@ -20,7 +20,7 @@ sub prepare_app {
     my ($self, $env) = @_;
     $self->SUPER::prepare_app($env);
     my $tx = Text::Xslate->new(
-        path => ['./view/binder'],
+        path => [$self->tmpl_dir || './view/binder'],
         module => ['Text::Xslate::Bridge::TT2Like'],
         syntax => 'TTerse',
         function => {
