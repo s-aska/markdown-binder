@@ -14,7 +14,7 @@ if (navigator.userAgent.indexOf('Win') != -1) {
 <link rel="stylesheet" type="text/css" href="[% app.base_url %]static/css/style.css" media="all">
 <link rel="stylesheet" type="text/css" href="[% app.base_url %]static/css/binder.css" media="all">
 <link href='http://fonts.googleapis.com/css?family=Raleway:100' rel='stylesheet' type='text/css'>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
 <script type="text/javascript" src="[% app.base_url %]static/js/binder.js"></script>
 </head>
 <body>

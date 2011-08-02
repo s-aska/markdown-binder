@@ -105,7 +105,7 @@ function initApplication(){
         // browser go back event
         w.bind("popstate", function (event) {
             if (binder.gone) {
-                binder.load(event.state);
+                binder.load(event.originalEvent.state);
             }
         });
     }
