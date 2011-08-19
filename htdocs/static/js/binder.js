@@ -145,10 +145,10 @@ function initApplication(){
 }
 
 function initHeight(){
-    var h_height = $('header').attr('offsetHeight');
-    var f_height = 0;//$('footer').attr('offsetHeight');
+    var h_height = $('header').offset().top;
+    var f_height = 0;
     var w_height = w.height();
-    var a_padding = $('aside').attr('offsetHeight') - $('aside').height();
+    var a_padding = $('aside').offset().top - $('aside').height();
     var a_height = w_height - h_height - f_height - a_padding;
     $('aside').height(a_height);
 }
