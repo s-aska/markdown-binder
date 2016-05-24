@@ -1,8 +1,3 @@
-$(document).ready(function() {
-    var binder = new MarkdownBinder();
-    binder.initApplication();
-});
-
 (function(ns, w, d) {
 
 var w = $(w);
@@ -28,8 +23,27 @@ ns.MarkdownBinder.prototype = {
     initHighlight: initHighlight
 };
 
-function initialize(options){
+// ブラウザバックで $(d).ready 呼ばれないので w.bind("popstate" とかは initialize でやる
+var binder = new MarkdownBinder();
 
+$(d).ready(function() {
+    binder.initApplication();
+});
+
+function initialize(options){
+    var binder = this;
+
+    // history control
+    if (history.pushState) {
+    // history.pushState('/', '', location.protocol + '//' + location.host + location.pathname);
+    // browser go back event
+    w.bind("popstate", function (event) {
+        console.log(event.originalEvent.state);
+        if (event.originalEvent.state) {
+            binder.load(event.originalEvent.state);
+        }
+    });
+}
 }
 
 function catfile(dir, file){
@@ -87,28 +101,20 @@ function expand(){
         $('aside nav li.dir').addClass('close');
         $('#expand').addClass('close');
         this.expanded = false;
+        this.initHeight();
         this.initHighlight();
     } else {
         $('aside nav ul ul').show();
         $('aside nav li.dir').removeClass('close');
         $('#expand').removeClass('close');
         this.expanded = true;
+        this.initHeight();
+        this.initHighlight();
     }
 }
 
 function initApplication(){
     var binder = this;
-
-    // history control
-    if (history.pushState) {
-        // history.pushState('/', '', location.protocol + '//' + location.host + location.pathname);
-        // browser go back event
-        w.bind("popstate", function (event) {
-            if (binder.gone) {
-                binder.load(event.originalEvent.state);
-            }
-        });
-    }
 
     // bind
     $('#expand').bind('click', function(){binder.expand()});
@@ -135,7 +141,7 @@ function initApplication(){
     $('#close').show();
     w.bind('resize', initHeight);
 
-    // init 
+    // init
     this.path = location.pathname;
     this.initHeight();
     this.initSidebar();
@@ -145,11 +151,10 @@ function initApplication(){
 }
 
 function initHeight(){
-    var h_height = $('header').offset().top;
-    var f_height = 0;
-    var w_height = w.height();
-    var a_padding = $('aside').offset().top - $('aside').height();
-    var a_height = w_height - h_height - f_height - a_padding;
+    var a_height = w.height()
+        - $('aside').offset().top
+        - parseInt($('aside').css('paddingTop'), 10)
+        - parseInt($('aside').css('paddingBottom'));
     $('aside').height(a_height);
 }
 

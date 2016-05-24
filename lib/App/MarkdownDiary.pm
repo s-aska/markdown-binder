@@ -9,7 +9,8 @@ use Cwd 'abs_path';
 use Data::MessagePack;
 use Digest::MD5;
 use Encode;
-use File::Spec::Functions qw(abs2rel catdir tmpdir);
+use File::Spec;
+use File::Spec::Functions qw(abs2rel catdir);
 use HTML::Entities;
 use Path::Class;
 use Text::Markdown;
@@ -25,7 +26,7 @@ sub prepare_app {
         syntax => 'TTerse',
         function => {
             markdown => html_builder {
-                Text::Markdown::markdown(shift);
+                decode_utf8(Text::Markdown::markdown(shift));
             },
             summary => sub {
                 my ($html) = @_;
@@ -39,7 +40,7 @@ sub prepare_app {
     $self->tx($tx);
     unless ($self->tmpdir) {
         my $dir = Digest::MD5::md5_hex($self->root);
-        my $tmpdir = catdir(tmpdir(), $dir);
+        my $tmpdir = catdir(File::Spec->tmpdir(), $dir);
         $self->tmpdir($tmpdir);
         unless (-d $tmpdir) {
             mkdir $tmpdir, 0700;
@@ -57,16 +58,19 @@ sub toppage {
 
 sub page {
     my ($self, $req, $res) = @_;
-    
+
     if ($req->path eq '/:rebuild') {
         $self->rebuild;
         $res->body('rebuild success.');
         return;
     }
-    
+
     my $mode;
     my $title;
     my $entries = $self->load_entries;
+    for (@$entries) {
+        $_->{title} = decode_utf8($_->{title})
+    }
     my @entries;
     my @recents = @$entries;
     @recents = splice @recents, 0, ($self->max_recents - 1) if scalar(@recents) > $self->max_recents;
@@ -115,34 +119,34 @@ sub page {
         $res->body($self->rss_file->openr);
         return ;
     }
-    
+
     @entries = splice @entries, 0, ($self->max_disp - 1) if scalar(@entries) > $self->max_disp;
-    
+
     $mode = 'entry' if scalar(@entries) == 1;
-    
+
     my $page = $self->tx->render('wrap.tx', {
         app => $self,
         entries => \@entries,
         mode => $mode,
-        title => decode_utf8($title)
+        title => $title
     });
     $res->body(encode_utf8($page));
 }
 
 sub rebuild {
     my ($self) = @_;
-    
+
     warn "rebuild";
-    
+
     my $entries = $self->find_entries;
-    
+
     # save cache
     $self->store_entries($entries);
-    
+
     my @recents = @$entries;
     @recents = splice(@recents, 0, ($self->max_recents - 1))
         if scalar(@recents) > $self->max_recents;
-    
+
     # save sidebar
     $self->rebuild_sidebar($entries, \@recents);
 
@@ -158,7 +162,7 @@ sub url {
 
 sub find_entries {
     my ($self) = @_;
-    
+
     my $entries = [];
     $self->root->recurse(
         callback => sub {
@@ -174,7 +178,7 @@ sub find_entries {
 
 sub file_to_entry {
     my ($self, $file) = @_;
-    
+
     my ($year, $month, $mday, $hour, $page)
         = $file->basename=~m|(\d{4})(\d{2})(\d{2})(\d{2})\.(.*)\.md|;
     my $date    = sprintf '%04d/%02d/%02d %02d:00', $year, $month, $mday, $hour;
@@ -208,7 +212,7 @@ sub file_to_entry {
 
 sub rebuild_sidebar {
     my ($self, $entries, $recents) = @_;
-    
+
     my $entry_hash = {};
     my $month_hash = {};
     my $day_hash = {};
@@ -232,7 +236,7 @@ sub rebuild_sidebar {
         }
     }
     my @categories = sort { $a->{name} cmp $b->{name} } values %$category_hash;
-    my @months = sort { $a->{name} cmp $b->{name} } values %$month_hash;
+    my @months = sort { $b->{name} cmp $a->{name} } values %$month_hash;
     my $cur_month = (localtime)[4] + 1;
     my $cur_year = (localtime)[5] + 1900;
     my @this_calender = calendar();
@@ -272,7 +276,7 @@ sub rebuild_sidebar {
 
 sub rebuild_rss {
     my ($self, $recents) = @_;
-    
+
     my $last_entry = $recents->[0];
     my $rss = XML::RSS::LibXML->new(
       version       => '1.0',
@@ -329,6 +333,9 @@ sub load_sidebar {
 sub load {
     my ($self, $file) = @_;
     my $fh;
+    unless (-f $file) {
+        die "$file not found.";
+    }
     open $fh, $file;
     my $data = join '', <$fh>;
     close $fh;

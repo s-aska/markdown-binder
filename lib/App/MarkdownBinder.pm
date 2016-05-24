@@ -14,6 +14,8 @@ use Text::Xslate qw/html_builder/;
 if ($^O eq 'darwin') {
     require Encode::UTF8Mac;
     $Encode::Locale::ENCODING_LOCALE_FS = 'utf-8-mac';
+} else {
+    $Encode::Locale::ENCODING_LOCALE_FS = 'utf-8';
 }
 
 sub prepare_app {

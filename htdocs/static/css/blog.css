@@ -12,128 +12,177 @@
 /********** reset **********/
 
 /********** base **********/
+body {
+  margin: 0;
+  background-color: #f7f7f7;
+}
 
 /********** header **********/
-
+header {
+  width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+	padding-bottom: 3px;
+	border-bottom: 1px solid black;
+}
 header h1 {
+  padding-top: 40px;
+  padding-bottom: 40px;
+  padding-left: 0;
+  border: none;
+  font-size: 36px;
+  text-align: center;
+	border-bottom: 2px solid black;
 }
 header h1 a {
-    color: #5D5D5D;
-    text-decoration: none;
+  color: #5D5D5D;
+  text-decoration: none;
 }
 header h1 a:hover {
-    color: #5D5D5D;
-    background: none;
-    text-decoration: none;
-}
-
-/********** footer **********/
-
-footer {
-    display: block;
-}
-
-/********** aside **********/
-
-aside {
-    padding: 20px 0px 0px 20px;
-    position: relative;
-    float: right;
-    width: 235px;
-    height: auto;
-    font-size: 110%;
-}
-aside nav section {
-    margin-bottom: 10px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #ccc;
-}
-aside nav ul {
-    padding-left: 10px;
-}
-aside nav li {
-    overflow: hidden;
-}
-aside nav li.close {
-    color: #cccccc;
-}
-aside nav li.highlight {
-    color: #666666;
-}
-aside nav li a {
-    font-size: 90%;
-    white-space: nowrap;
-}
-aside nav table {
-    margin-top: 6px;
-    margin-left: 10px;
-}
-aside nav td {
-    width: 30px;
-    text-align: center;
+  color: #5D5D5D;
+  background: none;
+  text-decoration: none;
 }
 
 /********** article **********/
-
 article {
-    padding: 20px 20px 10px 20px;
-    border-right: 1px solid #ccc;
-    float: left;
-    width: 704px;
-    min-height: 700px;
-    position: relative;
+	margin-left: auto;
+	margin-right: auto;
+  padding: 40px 0 10px 0;
+  float: none;
+  width: 720px;
+  position: relative;
+  border-bottom: 1px solid #cccccc;
+  font-family: 'Trebuchet MS','Arial',"Helvetica Neue", Helvetica,'ヒラギノ角ゴ Pro W3','Hiragino Kaku Gothic Pro','メイリオ',Meiryo,'ＭＳ Ｐゴシック','MS PGothic',sans-serif;
+}
+article h1 {
+  font-size: 24px;
+}
+article h2 {
+  padding-left: 0;
+  padding-right: 0;
+  border-left: none;
+  border-bottom: 2px solid #7a7a7a;
 }
 article hr {
-    border-top: 2px solid #cccccc;
-    height: 2px;
+  border-top: 2px solid #7A7A7A;
+  height: 2px;
+}
+article section time {
+  font-size: 11px;
+  font-family: "lucida grande", Helvetica, tahoma, Arial, sans-serif;
+  color: gray;
 }
 article section hr {
-    margin: 1em 0;
-    padding: 0;
-    border: 0;    
-    border-top: 1px solid #cccccc;
-    display: block;
-    height: 1px;
+  margin: 1em 0;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid #cccccc;
+  display: block;
+  height: 1px;
+}
+article section img {
+  border: 2px solid #cccccc;
 }
 
 /* nav */
-
 article nav {
-    margin-top: 10px;
-    margin-bottom: 10px;
-    padding-top: 10px;
-    border-top: 1px solid #ccc;
+  margin-top: 10px;
+  margin-bottom: 0px;
+  padding-top: 15px;
+  border-top: 1px solid #ccc;
 }
 article nav:after {
-    display: block;
-    clear: both;
-    content:"";
+  display: block;
+  clear: both;
+  content:"";
 } /* clearfix */
 article nav .date {
-    float: right;
-    font-size: 12px;
+  float: right;
+  font-size: 12px;
 }
 article nav .hatena-bookmark-button-frame {
-    margin-right: 14px;
+  margin-right: 14px;
 }
 article nav .hatena-bookmark-button-frame,
 article nav .twitter-share-button,
 article nav .fb_iframe_widget {
-    float: left;
+  float: left;
 }
 article nav.entry-list {
-    margin-top: 0px;
-    margin-bottom: 5px;
-    padding-top: 0;
-    padding-bottom: 5px;
-    border-top: none;
-    border-bottom: 1px solid #ccc;
+  margin-top: 0px;
+  margin-bottom: 5px;
+  padding-top: 0;
+  padding-bottom: 5px;
+  border-top: none;
+  border-bottom: 1px solid #ccc;
 }
 article nav.entry-list h1 {
-    margin-bottom: 0;
-    border: none;
-    float: left;
+  margin-bottom: 0;
+  border: none;
+  float: left;
 }
 article nav.entry-list .date {
-    padding-top: 10px;
+  padding-top: 10px;
+}
+
+/********** aside **********/
+aside {
+  margin-left: auto;
+  margin-right: auto;
+	padding: 30px 0px 0px 0px;
+  position: relative;
+  width: 680px;
+  float: none;
+  font-size: 1.1em;
+}
+aside nav {
+
+}
+aside nav:after {
+  display: block;
+  clear: both;
+  content:"";
+}
+aside nav section {
+  float: left;
+  margin-right: 20px;
+  margin-bottom: 20px;
+}
+aside nav section:last-child {
+  margin-right: 0;
+  width: 336px;
+}
+aside nav h1 {
+  font-weight: bold;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+aside nav ul {
+}
+aside nav li {
+  overflow: hidden;
+  line-height: 2;
+}
+aside nav li.close {
+  color: #cccccc;
+}
+aside nav li.highlight {
+  color: #666666;
+}
+aside nav li a {
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+aside nav table {
+  margin-top: 6px;
+}
+aside nav td {
+  width: 30px;
+  text-align: center;
+}
+
+/********** footer **********/
+footer {
+  display: block;
 }
